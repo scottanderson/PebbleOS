@@ -15,6 +15,9 @@ typedef struct SystemThemeMenuCellStyle {
   int16_t small_cell_height;
   int16_t horizontal_inset;
   int16_t title_subtitle_left_margin;
+  //! Space above and below the title of a cell without a subtitle, together, or 0 to use
+  //! basic_cell_height
+  int16_t single_line_padding_h;
 } SystemThemeMenuCellStyle;
 
 //! Sizes of option menus

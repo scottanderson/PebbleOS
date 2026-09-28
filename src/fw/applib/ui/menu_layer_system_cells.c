@@ -76,6 +76,16 @@ int16_t menu_cell_basic_cell_height(void) {
   return prv_use_platform_default_size() ? style->app_basic_cell_height : style->basic_cell_height;
 }
 
+int16_t menu_cell_single_line_cell_height(void) {
+  const SystemThemeMenuCellStyle *style = prv_get_cell_style();
+  if (!style->single_line_padding_h) {
+    return style->basic_cell_height;
+  }
+  const int16_t title_height =
+      fonts_get_font_height(system_theme_get_font(TextStyleFont_MenuCellTitle));
+  return MIN(style->basic_cell_height, title_height + style->single_line_padding_h);
+}
+
 int16_t menu_cell_small_cell_height(void) {
   return prv_get_cell_style()->small_cell_height;
 }
