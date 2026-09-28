@@ -131,12 +131,14 @@ static const SystemThemeStyle s_styles[NumPreferredContentSizes] = {
 #if !defined(CONFIG_RECOVERY_FW)
         .launcher =
             {
-              .title_font_key = FONT_KEY_GOTHIC_18_BOLD,
-              .subtitle_font_key = FONT_KEY_GOTHIC_14,
+              .title_font_key = PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_24_BOLD, FONT_KEY_GOTHIC_18_BOLD),
+              .subtitle_font_key = PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_18, FONT_KEY_GOTHIC_14),
               .glance_left_inset = LAUNCHER_GLANCE_INSET,
               .glance_right_inset = LAUNCHER_GLANCE_INSET,
+              .title_margin_h = PBL_IF_RECT_ELSE(-3, 0),
 #if PBL_RECT
-              .cell_height = 42,
+              .cell_height = 50,
+              .title_only_cell_height = 42,
 #else
               .focused_cell_height = 52,
               .unfocused_cell_height = 38,
@@ -197,14 +199,14 @@ static const SystemThemeStyle s_styles[NumPreferredContentSizes] = {
 #if !defined(CONFIG_RECOVERY_FW)
         .launcher =
             {
-              .title_font_key = FONT_KEY_GOTHIC_24_BOLD,
-              .subtitle_font_key = FONT_KEY_GOTHIC_18,
+              .title_font_key = PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_28_BOLD, FONT_KEY_GOTHIC_24_BOLD),
+              .subtitle_font_key = PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_24, FONT_KEY_GOTHIC_18),
               .glance_left_inset = LAUNCHER_GLANCE_INSET,
               .glance_right_inset = LAUNCHER_GLANCE_INSET,
               .title_margin_h = PBL_IF_RECT_ELSE(-3, 0),
 #if PBL_RECT
-              .cell_height = 50,
-              .title_only_cell_height = 42,
+              .cell_height = 60,
+              .title_only_cell_height = 46,
 #else
               .focused_cell_height = 55,
               .unfocused_cell_height = 45,
@@ -274,14 +276,14 @@ static const SystemThemeStyle s_styles[NumPreferredContentSizes] = {
 #if !defined(CONFIG_RECOVERY_FW)
     .launcher =
         {
-          .title_font_key = FONT_KEY_GOTHIC_28_BOLD,
-          .subtitle_font_key = FONT_KEY_GOTHIC_24,
+          .title_font_key = PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_36_BOLD, FONT_KEY_GOTHIC_28_BOLD),
+          .subtitle_font_key = PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_28, FONT_KEY_GOTHIC_24),
           .glance_left_inset = LAUNCHER_GLANCE_INSET,
           .glance_right_inset = LAUNCHER_GLANCE_INSET,
           .title_margin_h = PBL_IF_RECT_ELSE(-3, 0),
 #if PBL_RECT
-          .cell_height = 60,
-          .title_only_cell_height = 46,
+          .cell_height = 76,
+          .title_only_cell_height = 56,
 #else
           .focused_cell_height = 66,
           .unfocused_cell_height = 56,
