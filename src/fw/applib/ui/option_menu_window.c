@@ -84,9 +84,15 @@ static int16_t prv_get_cell_height_callback(MenuLayer *menu_layer, MenuIndex *ce
   if (option_menu->callbacks.get_cell_height) {
     return option_menu->callbacks.get_cell_height(option_menu, cell_index->row, is_selected,
                                                   option_menu->context);
-  } else {
-    return option_menu_default_cell_height(option_menu->content_type, is_selected);
   }
+#if PBL_ROUND
+  // Unselected rows beside an icon have room for a title on two lines
+  if (!is_selected && option_menu->icons_enabled &&
+      option_menu->content_type != OptionMenuContentType_SingleLine) {
+    return 2 * fonts_get_font_height(option_menu->title_font);
+  }
+#endif
+  return option_menu_default_cell_height(option_menu->content_type, is_selected);
 }
 
 static int32_t prv_draw_selection_icon(const OptionMenu *option_menu, GContext *ctx,

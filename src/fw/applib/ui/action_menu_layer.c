@@ -39,7 +39,11 @@ static GFont prv_get_item_font(void) {
 #if PBL_ROUND
 //! Only used on round displays to achieve a fish-eye effect
 static GFont prv_get_unfocused_item_font(void) {
-  return system_theme_get_font(TextStyleFont_Header);
+  // Never larger than the focused item, whose menu title stays 28 points at Extra Large
+  const bool extra_large = (system_theme_get_content_size() == PreferredContentSizeExtraLarge);
+  return extra_large
+             ? system_theme_get_font_for_size(PreferredContentSizeLarge, TextStyleFont_Header)
+             : system_theme_get_font(TextStyleFont_Header);
 }
 #endif
 

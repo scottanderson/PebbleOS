@@ -525,7 +525,7 @@ void test_menu_layer_system_cells__third_party_app_keeps_platform_default(void) 
 
   // Positive control: a system process at the same setting does follow the content size
   s_current_task = PebbleTask_KernelMain;
-  cl_assert_equal_i(menu_cell_basic_cell_height(), 85);
+  cl_assert_equal_i(menu_cell_basic_cell_height(), 78);
 
   // Restore process identity and content size for subsequent tests
   s_current_process_id = (AppInstallId)(-1);

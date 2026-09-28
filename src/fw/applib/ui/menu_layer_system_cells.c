@@ -30,11 +30,10 @@ typedef struct MenuCellDimensions {
 } MenuCellDimensions;
 
 static const MenuCellDimensions s_menu_cell_dimensions[NumPreferredContentSizes] = {
-  //! @note these are the same as Medium until Small is designed
   [PreferredContentSizeSmall] =
       {
-        .basic_cell_height = 44,
-        .small_cell_height = 34,
+        .basic_cell_height = 40,
+        .small_cell_height = 30,
         .horizontal_inset = 5,
         .title_subtitle_left_margin = 30,
       },
@@ -53,7 +52,7 @@ static const MenuCellDimensions s_menu_cell_dimensions[NumPreferredContentSizes]
         .title_subtitle_left_margin = 34,
       },
   [PreferredContentSizeExtraLarge] = {
-    .basic_cell_height = 85,
+    .basic_cell_height = 78,
     .small_cell_height = 52,
     .horizontal_inset = 10,
     .title_subtitle_left_margin = 34,
