@@ -77,6 +77,12 @@ int16_t menu_cell_basic_cell_height(void) {
   return prv_get_cell_dimensions()->basic_cell_height;
 }
 
+int16_t menu_cell_single_line_cell_height(void) {
+  const int16_t title_height =
+      fonts_get_font_height(system_theme_get_font(TextStyleFont_MenuCellTitle));
+  return MIN(menu_cell_basic_cell_height(), title_height + 10);
+}
+
 int16_t menu_cell_small_cell_height(void) {
   return prv_get_cell_dimensions()->small_cell_height;
 }

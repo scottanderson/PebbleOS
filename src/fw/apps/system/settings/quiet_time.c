@@ -463,6 +463,23 @@ static void prv_draw_row_cb(SettingsCallbacks *context, GContext *ctx, const Lay
   menu_cell_basic_draw(ctx, cell_layer, title, subtitle, NULL);
 }
 
+static int16_t prv_row_height_cb(SettingsCallbacks *context, uint16_t row, bool is_selected) {
+#if PBL_RECT
+  switch (row) {
+    case QuietTimeItemSchedule:
+#ifdef CONFIG_TOUCH
+    case QuietTimeItemBacklight:
+#endif
+      return menu_cell_single_line_cell_height();
+    default:
+      break;
+  }
+#endif
+  return PBL_IF_RECT_ELSE(menu_cell_basic_cell_height(),
+                          (is_selected ? MENU_CELL_ROUND_FOCUSED_SHORT_CELL_HEIGHT
+                                       : MENU_CELL_ROUND_UNFOCUSED_TALL_CELL_HEIGHT));
+}
+
 static void prv_select_click_cb(SettingsCallbacks *context, uint16_t row) {
   switch (row) {
     case QuietTimeItemManual:
@@ -507,6 +524,7 @@ static Window *prv_init(void) {
   data->callbacks = (SettingsCallbacks){
     .deinit = prv_deinit_cb,
     .draw_row = prv_draw_row_cb,
+    .row_height = prv_row_height_cb,
     .select_click = prv_select_click_cb,
     .num_rows = prv_num_rows_cb,
   };

@@ -128,6 +128,10 @@ bool menu_cell_layer_is_highlighted(const Layer *cell_layer);
 //! Default cell height in pixels.
 int16_t menu_cell_basic_cell_height(void);
 
+//! Cell height in pixels for a system menu cell without a subtitle, which is never taller than
+//! \ref menu_cell_basic_cell_height.
+int16_t menu_cell_single_line_cell_height(void);
+
 //! Constant value representing \ref MenuLayer short cell height when this item is
 //! the selected item on a round display.
 #define MENU_CELL_ROUND_FOCUSED_SHORT_CELL_HEIGHT ((const int16_t)68)
