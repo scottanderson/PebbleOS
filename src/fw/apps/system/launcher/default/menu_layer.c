@@ -23,7 +23,6 @@
 // Styles
 
 static const LauncherMenuLayerStyle s_styles[NumPreferredContentSizes] = {
-  //! @note this is the same as Medium until Small is designed
   [PreferredContentSizeSmall] =
       {
         .title_font_key = FONT_KEY_GOTHIC_18_BOLD,
@@ -37,10 +36,11 @@ static const LauncherMenuLayerStyle s_styles[NumPreferredContentSizes] = {
       },
   [PreferredContentSizeMedium] =
       {
-        .title_font_key = FONT_KEY_GOTHIC_18_BOLD,
-        .subtitle_font_key = FONT_KEY_GOTHIC_14,
+        .title_font_key = PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_24_BOLD, FONT_KEY_GOTHIC_18_BOLD),
+        .subtitle_font_key = PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_18, FONT_KEY_GOTHIC_14),
 #if PBL_RECT
-        .cell_height = LAUNCHER_MENU_LAYER_MIN_CELL_HEIGHT,
+        .title_margin_h = -3,
+        .cell_height = 50,
 #else
         .focused_cell_height = LAUNCHER_MENU_LAYER_MIN_FOCUSED_CELL_HEIGHT,
         .unfocused_cell_height = LAUNCHER_MENU_LAYER_MIN_UNFOCUSED_CELL_HEIGHT,
@@ -48,22 +48,22 @@ static const LauncherMenuLayerStyle s_styles[NumPreferredContentSizes] = {
       },
   [PreferredContentSizeLarge] =
       {
-        .title_font_key = FONT_KEY_GOTHIC_24_BOLD,
-        .subtitle_font_key = FONT_KEY_GOTHIC_18,
+        .title_font_key = PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_28_BOLD, FONT_KEY_GOTHIC_24_BOLD),
+        .subtitle_font_key = PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_24, FONT_KEY_GOTHIC_18),
         .title_margin_h = PBL_IF_RECT_ELSE(-3, 0),
 #if PBL_RECT
-        .cell_height = 50,
+        .cell_height = 60,
 #else
         .focused_cell_height = 55,
         .unfocused_cell_height = 45,
 #endif
       },
   [PreferredContentSizeExtraLarge] = {
-    .title_font_key = FONT_KEY_GOTHIC_28_BOLD,
-    .subtitle_font_key = FONT_KEY_GOTHIC_24,
+    .title_font_key = PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_36_BOLD, FONT_KEY_GOTHIC_28_BOLD),
+    .subtitle_font_key = PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_28, FONT_KEY_GOTHIC_24),
     .title_margin_h = PBL_IF_RECT_ELSE(-3, 0),
 #if PBL_RECT
-    .cell_height = 60,
+    .cell_height = 76,
 #else
     .focused_cell_height = 66,
     .unfocused_cell_height = 56,
