@@ -400,6 +400,9 @@ static const char *prv_message_from_msgid(const char *msgid) {
   // If a string wasn't found, we want to return the original string.
   // However, if we have a context, this string needs to not show the context.
   // So we just find EOT and if it's present return the next character.
+  if (msgid == NULL) {
+    return NULL;
+  }
   const char *message = strchr(msgid, '\4');
   if (message == NULL) {
     // No context, the whole string is the message.

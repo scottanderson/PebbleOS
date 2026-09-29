@@ -178,6 +178,10 @@ void test_i18n__ctxt_notfound(void) {
   i18n_ctx_free("Quiet Time", "Disabled", __FILE__);
 }
 
+void test_i18n__null_msgid(void) {
+  cl_assert_equal_p(i18n_get(NULL, __FILE__), NULL);
+}
+
 void test_i18n__ctxt_get_with_buffer(void) {
   const uint32_t LEN = 20;
   char buffer[LEN];
