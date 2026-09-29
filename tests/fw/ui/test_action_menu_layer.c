@@ -85,6 +85,13 @@ static void prv_touch_nav_setup(void) {
 // Fakes / stubs for action_menu_layer.c dependencies
 ////////////////////////
 
+PreferredContentSize system_theme_get_content_size(void) {
+  return PreferredContentSizeDefault;
+}
+GFont system_theme_get_font_for_size(PreferredContentSize size, TextStyleFont font) {
+  return system_theme_get_font(font);
+}
+
 static GContext s_gcontext;
 GContext *graphics_context_get_current_context(void) {
   return &s_gcontext;
@@ -127,6 +134,9 @@ void menu_cell_basic_draw_custom(GContext *ctx, const Layer *cell_layer, GFont c
                                  const char *title, GFont const value_font, const char *value,
                                  GFont const subtitle_font, const char *subtitle, GBitmap *icon,
                                  bool icon_on_right, GTextOverflowMode overflow_mode) {
+}
+bool menu_text_scroll_is_allowed(void) {
+  return false;
 }
 int16_t menu_cell_basic_horizontal_inset(void) {
   return 8;
