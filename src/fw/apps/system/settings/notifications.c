@@ -98,28 +98,37 @@ static void prv_filter_menu_push(SettingsNotificationsData *data) {
 // Text Size
 ////////////////////////
 
-enum {
-  NotificationsTextSizeSystem = SettingsContentSizeCount,
-  NotificationsTextSizeCount,
+static const char *s_text_size_names[] = {
+  [SettingsContentSize_Small] = i18n_ctx_noop("TextSize", "Small"),
+  [SettingsContentSize_Medium] = i18n_ctx_noop("TextSize", "Medium"),
+  [SettingsContentSize_Large] = i18n_ctx_noop("TextSize", "Large"),
+  [SettingsContentSize_ExtraLarge] = i18n_ctx_noop("TextSize", "Extra Large"),
 };
 
-static const char *s_text_size_names[NotificationsTextSizeCount] = {
-  [SettingsContentSize_Small] = i18n_noop("Smaller"),
-  [SettingsContentSize_Default] = i18n_ctx_noop("TextSize", "Default"),
-  [SettingsContentSize_Large] = i18n_noop("Larger"),
-  /// Notification text size option that follows the system Text Size setting
-  [NotificationsTextSizeSystem] = i18n_noop("Same as System"),
-};
+/// Notification text size option that follows the system Text Size setting
+static const char *const s_text_size_system_name = i18n_noop("Same as System");
+
+//! "Same as System" follows the sizes offered on this platform
+static int prv_text_size_system_index(void) {
+  return settings_content_size_count();
+}
+
+static const char *prv_text_size_name(int index) {
+  return (index == prv_text_size_system_index()) ? s_text_size_system_name
+                                                 : s_text_size_names[index];
+}
 
 static int prv_text_size_get_selection_index(void) {
   const PreferredContentSize size = alerts_preferences_get_notification_content_size();
-  return (size == NotificationContentSizeSystem) ? NotificationsTextSizeSystem
-                                                 : settings_content_size_from_preferred_size(size);
+  if (size == NotificationContentSizeSystem) {
+    return prv_text_size_system_index();
+  }
+  return settings_content_size_from_preferred_size(size);
 }
 
 static void prv_text_size_menu_select(OptionMenu *option_menu, int selection, void *context) {
   alerts_preferences_set_notification_content_size(
-      (selection == NotificationsTextSizeSystem)
+      (selection == prv_text_size_system_index())
           ? NotificationContentSizeSystem
           : settings_content_size_to_preferred_size(selection));
   app_window_stack_remove(&option_menu->window, true /* animated */);
@@ -129,11 +138,18 @@ static void prv_text_size_menu_push(SettingsNotificationsData *data) {
   const OptionMenuCallbacks callbacks = {
     .select = prv_text_size_menu_select,
   };
+  const int num_sizes = settings_content_size_count();
+  // The option menu keeps this array while it is shown
+  static const char *names[SettingsContentSizeCount + 1];
+  for (int i = 0; i < num_sizes; i++) {
+    names[i] = s_text_size_names[i];
+  }
+  names[num_sizes] = s_text_size_system_name;
   /// The option in the Settings app for choosing the text size of notifications.
   const char *title = i18n_noop("Text Size");
-  settings_option_menu_push(
-      title, OptionMenuContentType_SingleLine, prv_text_size_get_selection_index(), &callbacks,
-      NotificationsTextSizeCount, true /* icons_enabled */, s_text_size_names, data);
+  settings_option_menu_push(title, OptionMenuContentType_SingleLine,
+                            prv_text_size_get_selection_index(), &callbacks, num_sizes + 1,
+                            true /* icons_enabled */, names, data);
 }
 
 // Window Timeout
@@ -349,7 +365,7 @@ static void prv_draw_row_cb(SettingsCallbacks *context, GContext *ctx, const Lay
     case NotificationsItemTextSize:
       /// String within Settings->Notifications that describes the text font size
       title = i18n_noop("Text Size");
-      subtitle = s_text_size_names[prv_text_size_get_selection_index()];
+      subtitle = prv_text_size_name(prv_text_size_get_selection_index());
       break;
     case NotificationsItemWindowTimeout: {
       /// String within Settings->Notifications that describes the window timeout setting
