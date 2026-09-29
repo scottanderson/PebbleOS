@@ -59,9 +59,10 @@ static void prv_language_menu_push(SettingsDisplayData *data) {
 /////////////////////////////
 
 static const char *s_text_size_names[] = {
-  [SettingsContentSize_Small] = i18n_noop("Smaller"),
-  [SettingsContentSize_Default] = i18n_ctx_noop("TextSize", "Default"),
-  [SettingsContentSize_Large] = i18n_noop("Larger"),
+  [SettingsContentSize_Small] = i18n_ctx_noop("TextSize", "Small"),
+  [SettingsContentSize_Medium] = i18n_ctx_noop("TextSize", "Medium"),
+  [SettingsContentSize_Large] = i18n_ctx_noop("TextSize", "Large"),
+  [SettingsContentSize_ExtraLarge] = i18n_ctx_noop("TextSize", "Extra Large"),
 };
 
 static void prv_text_size_menu_select(OptionMenu *option_menu, int selection, void *context) {
@@ -78,8 +79,8 @@ static void prv_text_size_menu_push(SettingsDisplayData *data) {
   const SettingsContentSize index =
       settings_content_size_from_preferred_size(system_theme_get_content_size());
   settings_option_menu_push(title, OptionMenuContentType_SingleLine, index, &callbacks,
-                            SettingsContentSizeCount, true /* icons_enabled */, s_text_size_names,
-                            data);
+                            settings_content_size_count(), true /* icons_enabled */,
+                            s_text_size_names, data);
 }
 
 // Intensity Settings
