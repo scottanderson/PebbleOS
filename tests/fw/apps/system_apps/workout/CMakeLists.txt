@@ -97,6 +97,7 @@ pbl_clar_test(test_workout_summary
     tests/fakes/fake_workout_service.c
     tests/fixtures/resources/timeline_resource_table.auto.c
     src/fw/applib/ui/menu_layer.c
+    src/fw/applib/ui/menu_text_scroll.c
     src/fw/apps/system/workout/countdown.c
     src/fw/apps/system/workout/selection.c
     src/fw/apps/system/workout/dialog.c
@@ -204,6 +205,7 @@ pbl_clar_test(test_workout_active
     tests/fakes/fake_workout_service.c
     tests/fixtures/resources/timeline_resource_table.auto.c
     src/fw/applib/ui/menu_layer.c
+    src/fw/applib/ui/menu_text_scroll.c
     src/fw/apps/system/workout/data.c
     src/fw/apps/system/workout/dialog.c
     src/fw/apps/system/workout/active.c
@@ -309,6 +311,7 @@ pbl_clar_test(test_workout_dialog
     tests/fakes/fake_workout_service.c
     tests/fixtures/resources/timeline_resource_table.auto.c
     src/fw/applib/ui/menu_layer.c
+    src/fw/applib/ui/menu_text_scroll.c
     src/fw/apps/system/workout/data.c
     src/fw/apps/system/workout/dialog.c
   PLATFORMS obelix gabbro
@@ -413,6 +416,7 @@ pbl_clar_test(test_workout_selection
     tests/fakes/fake_workout_service.c
     tests/fixtures/resources/timeline_resource_table.auto.c
     src/fw/applib/ui/menu_layer.c
+    src/fw/applib/ui/menu_text_scroll.c
     src/fw/apps/system/workout/utils.c
     src/fw/apps/system/workout/selection.c
   PLATFORMS obelix gabbro

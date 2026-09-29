@@ -162,6 +162,7 @@ pbl_clar_test(test_timeline_layouts
     src/fw/applib/ui/layer.c
     src/fw/applib/ui/menu_layer.c
     src/fw/applib/ui/menu_layer_system_cells.c
+    src/fw/applib/ui/menu_text_scroll.c
     src/fw/applib/ui/scroll_layer.c
     src/fw/applib/ui/shadows.c
     src/fw/applib/ui/status_bar_layer.c
