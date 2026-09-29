@@ -114,7 +114,8 @@ static int16_t prv_get_cell_height_callback(MenuLayer *menu_layer, MenuIndex *ce
   return menu_layer_is_index_selected(menu_layer, cell_index) ? focused_cell_height
                                                               : unfocused_cell_height;
 #else
-  return menu_cell_basic_cell_height();
+  // Titles only, and they scroll sideways when too long
+  return menu_cell_single_line_cell_height();
 #endif
 }
 

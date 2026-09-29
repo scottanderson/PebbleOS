@@ -67,9 +67,15 @@ static void select_callback(MenuLayer *menu_layer, MenuIndex *cell_index,
   });
 }
 
-#if PBL_ROUND
 static int16_t get_cell_height_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index,
                                         SettingsWatchfacesData *data) {
+#if PBL_RECT
+  // Only the active watchface has a subtitle, and titles scroll sideways when too long
+  AppMenuNode *node = app_menu_data_source_get_node_at_index(&data->data_source, cell_index->row);
+  return (node && data->active_watchface_id == node->install_id)
+             ? menu_cell_basic_cell_height()
+             : menu_cell_single_line_cell_height();
+#else
   const int16_t focused_cell_height =
       (system_theme_get_content_size() == PreferredContentSizeExtraLarge)
           ? 100
@@ -82,8 +88,8 @@ static int16_t get_cell_height_callback(struct MenuLayer *menu_layer, MenuIndex 
 #else
   return MENU_CELL_ROUND_UNFOCUSED_SHORT_CELL_HEIGHT;
 #endif
-}
 #endif
+}
 
 static uint16_t get_num_rows_callback(struct MenuLayer *menu_layer, uint16_t section_index,
                                       SettingsWatchfacesData *data) {
@@ -152,9 +158,7 @@ static void prv_window_load(Window *window) {
   menu_layer_set_callbacks(
       menu_layer, data,
       &(MenuLayerCallbacks){
-#if PBL_ROUND
         .get_cell_height = (MenuLayerGetCellHeightCallback)get_cell_height_callback,
-#endif
         .get_num_rows = (MenuLayerGetNumberOfRowsInSectionsCallback)get_num_rows_callback,
         .draw_row = (MenuLayerDrawRowCallback)draw_row_callback,
         .select_click = (MenuLayerSelectCallback)select_callback,
