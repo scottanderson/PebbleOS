@@ -16,6 +16,8 @@ typedef struct LauncherMenuLayerStyle {
   int16_t title_margin_h;
 #if PBL_RECT
   int16_t cell_height;
+  //! Height of a cell whose app has no subtitle
+  int16_t title_only_cell_height;
 #else
   int16_t focused_cell_height;
   int16_t unfocused_cell_height;
@@ -34,6 +36,11 @@ typedef struct LauncherMenuLayer {
   LauncherAppGlanceService glance_service;
   bool selection_animations_enabled;
   AppInstallId app_to_launch_after_next_render;
+#if PBL_RECT
+  //! Per row: whether the app's glance currently shows a subtitle (see LauncherRowSubtitleState)
+  uint8_t *row_subtitle_states;
+  uint16_t num_row_subtitle_states;
+#endif
 } LauncherMenuLayer;
 
 typedef struct LauncherMenuLayerSelectionState {

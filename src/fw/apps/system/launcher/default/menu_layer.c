@@ -6,6 +6,7 @@
 #include "app_glance_service.h"
 #include "menu_layer_private.h"
 
+#include "applib/applib_malloc.auto.h"
 #include "applib/graphics/gtypes.h"
 #include "applib/ui/app_window_stack.h"
 #include "applib/ui/content_indicator.h"
@@ -29,6 +30,7 @@ static const LauncherMenuLayerStyle s_styles[NumPreferredContentSizes] = {
         .subtitle_font_key = FONT_KEY_GOTHIC_14,
 #if PBL_RECT
         .cell_height = LAUNCHER_MENU_LAYER_MIN_CELL_HEIGHT,
+        .title_only_cell_height = LAUNCHER_MENU_LAYER_MIN_CELL_HEIGHT,
 #else
         .focused_cell_height = LAUNCHER_MENU_LAYER_MIN_FOCUSED_CELL_HEIGHT,
         .unfocused_cell_height = LAUNCHER_MENU_LAYER_MIN_UNFOCUSED_CELL_HEIGHT,
@@ -41,6 +43,7 @@ static const LauncherMenuLayerStyle s_styles[NumPreferredContentSizes] = {
 #if PBL_RECT
         .title_margin_h = -3,
         .cell_height = 50,
+        .title_only_cell_height = 40,
 #else
         .focused_cell_height = LAUNCHER_MENU_LAYER_MIN_FOCUSED_CELL_HEIGHT,
         .unfocused_cell_height = LAUNCHER_MENU_LAYER_MIN_UNFOCUSED_CELL_HEIGHT,
@@ -53,6 +56,7 @@ static const LauncherMenuLayerStyle s_styles[NumPreferredContentSizes] = {
         .title_margin_h = PBL_IF_RECT_ELSE(-3, 0),
 #if PBL_RECT
         .cell_height = 60,
+        .title_only_cell_height = 46,
 #else
         .focused_cell_height = 55,
         .unfocused_cell_height = 45,
@@ -64,6 +68,7 @@ static const LauncherMenuLayerStyle s_styles[NumPreferredContentSizes] = {
     .title_margin_h = PBL_IF_RECT_ELSE(-3, 0),
 #if PBL_RECT
     .cell_height = 76,
+    .title_only_cell_height = 56,
 #else
     .focused_cell_height = 66,
     .unfocused_cell_height = 56,
@@ -102,8 +107,70 @@ static void prv_launcher_menu_layer_mark_dirty(LauncherMenuLayer *launcher_menu_
 //////////////////////////////////////
 // LauncherAppGlanceService handlers
 
+#if PBL_RECT
+typedef enum LauncherRowSubtitleState {
+  LauncherRowSubtitleStateUnknown = 0,
+  LauncherRowSubtitleStateNone,
+  LauncherRowSubtitleStatePresent,
+} LauncherRowSubtitleState;
+
+static void prv_reset_row_subtitle_states(LauncherMenuLayer *launcher_menu_layer) {
+  applib_free(launcher_menu_layer->row_subtitle_states);
+  launcher_menu_layer->row_subtitle_states = NULL;
+  launcher_menu_layer->num_row_subtitle_states = 0;
+}
+
+//! Whether a row is tall enough for a subtitle. Cached because the menu layer asks for the height
+//! of every row and answering means loading the app's glance.
+static bool prv_row_has_subtitle(LauncherMenuLayer *launcher_menu_layer, uint16_t row) {
+  AppMenuDataSource *data_source = launcher_menu_layer->data_source;
+  const uint16_t num_rows = app_menu_data_source_get_count(data_source);
+  if (launcher_menu_layer->num_row_subtitle_states != num_rows) {
+    prv_reset_row_subtitle_states(launcher_menu_layer);
+    launcher_menu_layer->row_subtitle_states = applib_zalloc(num_rows);
+    launcher_menu_layer->num_row_subtitle_states =
+        launcher_menu_layer->row_subtitle_states ? num_rows : 0;
+  }
+  if (row >= launcher_menu_layer->num_row_subtitle_states) {
+    return true;
+  }
+  uint8_t *state = &launcher_menu_layer->row_subtitle_states[row];
+  if (*state == LauncherRowSubtitleStateUnknown) {
+    AppMenuNode *node = app_menu_data_source_get_node_at_index(data_source, row);
+    const bool has_subtitle =
+        launcher_app_glance_service_node_has_subtitle(&launcher_menu_layer->glance_service, node);
+    *state = has_subtitle ? LauncherRowSubtitleStatePresent : LauncherRowSubtitleStateNone;
+  }
+  return *state == LauncherRowSubtitleStatePresent;
+}
+
+//! Reload the menu if a glance gained or lost its subtitle, since that changes its row's height.
+//! This runs for every frame of a scrolling subtitle, so it must not reload otherwise.
+static void prv_reload_if_row_subtitle_changed(LauncherMenuLayer *launcher_menu_layer) {
+  for (uint16_t row = 0; row < launcher_menu_layer->num_row_subtitle_states; row++) {
+    const uint8_t state = launcher_menu_layer->row_subtitle_states[row];
+    if (state == LauncherRowSubtitleStateUnknown) {
+      continue;
+    }
+    AppMenuNode *node =
+        app_menu_data_source_get_node_at_index(launcher_menu_layer->data_source, row);
+    bool has_subtitle;
+    if (launcher_app_glance_service_peek_node_has_subtitle(&launcher_menu_layer->glance_service,
+                                                           node, &has_subtitle) &&
+        (has_subtitle != (state == LauncherRowSubtitleStatePresent))) {
+      prv_reset_row_subtitle_states(launcher_menu_layer);
+      menu_layer_reload_data(&launcher_menu_layer->menu_layer);
+      return;
+    }
+  }
+}
+#endif
+
 static void prv_glance_changed(void *context) {
   LauncherMenuLayer *launcher_menu_layer = context;
+#if PBL_RECT
+  prv_reload_if_row_subtitle_changed(launcher_menu_layer);
+#endif
   prv_launcher_menu_layer_mark_dirty(launcher_menu_layer);
 }
 
@@ -190,7 +257,8 @@ static int16_t prv_menu_layer_get_cell_height(PBL_UNUSED MenuLayer *menu_layer,
   LauncherMenuLayer *launcher_menu_layer = context;
   const LauncherMenuLayerStyle *style = &s_styles[launcher_menu_layer->content_size];
 #if PBL_RECT
-  return style->cell_height;
+  return prv_row_has_subtitle(launcher_menu_layer, cell_index->row) ? style->cell_height
+                                                                    : style->title_only_cell_height;
 #elif PBL_ROUND
   return menu_layer_is_index_selected(menu_layer, cell_index) ? style->focused_cell_height
                                                               : style->unfocused_cell_height;
@@ -250,6 +318,19 @@ void launcher_menu_layer_init(LauncherMenuLayer *launcher_menu_layer,
   layer_init(container_layer, &frame);
 
   launcher_menu_layer->data_source = data_source;
+#if PBL_RECT
+  launcher_menu_layer->row_subtitle_states = NULL;
+  launcher_menu_layer->num_row_subtitle_states = 0;
+#endif
+
+  // The glance service has to exist before the menu layer asks for cell heights
+  launcher_app_glance_service_init(&launcher_menu_layer->glance_service,
+                                   LAUNCHER_MENU_LAYER_GENERIC_APP_ICON);
+  const LauncherAppGlanceServiceHandlers glance_handlers = (LauncherAppGlanceServiceHandlers){
+    .glance_changed = prv_glance_changed,
+  };
+  launcher_app_glance_service_set_handlers(&launcher_menu_layer->glance_service, &glance_handlers,
+                                           launcher_menu_layer);
 
   GRect menu_layer_frame = frame;
 #if PBL_ROUND
@@ -320,14 +401,6 @@ void launcher_menu_layer_init(LauncherMenuLayer *launcher_menu_layer,
   // edges
   layer_add_child(container_layer, menu_layer_get_layer(menu_layer));
 
-  launcher_app_glance_service_init(&launcher_menu_layer->glance_service,
-                                   LAUNCHER_MENU_LAYER_GENERIC_APP_ICON);
-  const LauncherAppGlanceServiceHandlers glance_handlers = (LauncherAppGlanceServiceHandlers){
-    .glance_changed = prv_glance_changed,
-  };
-  launcher_app_glance_service_set_handlers(&launcher_menu_layer->glance_service, &glance_handlers,
-                                           launcher_menu_layer);
-
   // Select the visually first item from the top
   const uint16_t first_index = 0;
   const bool animated = false;
@@ -357,6 +430,9 @@ void launcher_menu_layer_reload_data(LauncherMenuLayer *launcher_menu_layer) {
     return;
   }
 
+#if PBL_RECT
+  prv_reset_row_subtitle_states(launcher_menu_layer);
+#endif
   menu_layer_reload_data(&launcher_menu_layer->menu_layer);
 }
 
@@ -465,6 +541,9 @@ void launcher_menu_layer_deinit(LauncherMenuLayer *launcher_menu_layer) {
 
   launcher_app_glance_service_deinit(&launcher_menu_layer->glance_service);
   menu_layer_deinit(&launcher_menu_layer->menu_layer);
+#if PBL_RECT
+  prv_reset_row_subtitle_states(launcher_menu_layer);
+#endif
 
 #if PBL_ROUND
   layer_deinit(&launcher_menu_layer->up_arrow_layer);
