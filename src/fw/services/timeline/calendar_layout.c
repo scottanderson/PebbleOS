@@ -376,8 +376,8 @@ static GTextNode *prv_card_view_constructor(TimelineLayout *timeline_layout) {
         PreferredContentSizeDefault,
         /* small */ PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_14, FONT_KEY_GOTHIC_14_BOLD),
         /* medium */ PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_14, FONT_KEY_GOTHIC_14_BOLD),
-        /* large */ FONT_KEY_GOTHIC_18_BOLD,
-        /* extralarge */ FONT_KEY_GOTHIC_18_BOLD),
+        /* large */ FONT_KEY_GOTHIC_24_BOLD,
+        /* extralarge */ FONT_KEY_GOTHIC_24_BOLD),
     .text.extent.offset.y = PBL_IF_RECT_ELSE(4, 1), // recurring offset y
     .text.extent.margin.h = PBL_IF_RECT_ELSE(4, 1), // recurring margin height
   };

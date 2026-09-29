@@ -135,7 +135,7 @@ void peek_layer_init(PeekLayer *peek_layer, const GRect *frame) {
   layer_add_child((Layer *)peek_layer, (Layer *)&peek_layer->title.text_layer);
   // subtitle layer
   text_layer_init_with_parameters(&peek_layer->subtitle.text_layer, &text_rect, NULL,
-                                  fonts_get_system_font(FONT_KEY_GOTHIC_18), GColorBlack,
+                                  fonts_get_system_font(FONT_KEY_GOTHIC_24), GColorBlack,
                                   GColorClear, text_alignment, GTextOverflowModeTrailingEllipsis);
   layer_add_child((Layer *)peek_layer, (Layer *)&peek_layer->subtitle.text_layer);
 

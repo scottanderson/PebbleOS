@@ -91,8 +91,8 @@ static GTextNode *prv_card_view_constructor(TimelineLayout *timeline_layout) {
   };
   static const LayoutNodeTextAttributeConfig s_subtitle_config = {
     .attr_id = AttributeIdSubtitle,
-    // This is spec'd to always be Gothic 24 Bold regardless of content size
-    .text.font_key = FONT_KEY_GOTHIC_24_BOLD,
+    // Always bold regardless of content size
+    .text.font_key = PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_28_BOLD, FONT_KEY_GOTHIC_24_BOLD),
     .text.line_spacing_delta = CARD_LINE_DELTA,
     .text.extent.margin.h = 10, // subtitle margin height
   };
