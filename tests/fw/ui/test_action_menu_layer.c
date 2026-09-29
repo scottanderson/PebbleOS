@@ -141,6 +141,9 @@ void menu_cell_basic_draw_custom(GContext *ctx, const Layer *cell_layer, GFont c
                                  GFont const subtitle_font, const char *subtitle, GBitmap *icon,
                                  bool icon_on_right, GTextOverflowMode overflow_mode) {
 }
+bool menu_text_scroll_is_allowed(void) {
+  return false;
+}
 int16_t menu_cell_basic_horizontal_inset(void) {
   return 8;
 }

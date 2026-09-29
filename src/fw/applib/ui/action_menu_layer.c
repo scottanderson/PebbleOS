@@ -11,6 +11,7 @@
 #include "applib/ui/animation.h"
 #include "applib/ui/menu_layer.h"
 #include "applib/ui/menu_layer_private.h"
+#include "applib/ui/menu_text_scroll.h"
 #include "applib/ui/property_animation.h"
 #include "applib/ui/scroll_layer_private.h"
 #include "board/display.h"
@@ -49,6 +50,11 @@ static const int MAX_NUM_VISIBLE_LINES = 2;
 #if PBL_ROUND
 static const int SHORT_ITEM_MAX_ROWS_SPALDING = 3;
 #endif
+
+//! System menus on rect displays show each label on one line and scroll the selected one sideways
+static bool prv_use_single_line(void) {
+  return PBL_IF_RECT_ELSE(menu_text_scroll_is_allowed(), false);
+}
 
 static GFont prv_get_item_font(void) {
   return system_theme_get_font(TextStyleFont_MenuCellTitle);
@@ -320,6 +326,10 @@ static int16_t prv_get_item_line_height(ActionMenuLayer *aml, int idx) {
   // Tintin has a rounded rectangle highlight
   box = grect_inset_internal(box, PBL_IF_COLOR_ELSE(inset, 2 * inset), 0);
 
+  if (prv_use_single_line()) {
+    return fonts_get_font_height(font);
+  }
+
   GContext *ctx = graphics_context_get_current_context();
   // On rectangular displays, if the indicator is present, the indicator also will be offset,
   // so we add another nudge between the text and the indicator.
@@ -501,7 +511,8 @@ static void prv_cell_item_content_draw_rect(GContext *ctx, const Layer *cell_lay
   mutable_cell_layer->bounds = *content_box;
 
   // Draw the menu cell specifying that we're allowing word wrapping
-  const GTextOverflowMode overflow_mode = GTextOverflowModeWordWrap;
+  const GTextOverflowMode overflow_mode =
+      prv_use_single_line() ? GTextOverflowModeTrailingEllipsis : GTextOverflowModeWordWrap;
   menu_cell_basic_draw_custom(ctx, mutable_cell_layer, font, item->label, font, indicator, font,
                               NULL, NULL, false, overflow_mode);
 
