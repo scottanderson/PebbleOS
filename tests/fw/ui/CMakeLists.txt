@@ -216,6 +216,7 @@ pbl_clar_test(test_menu_layer
     src/fw/applib/ui/layer.c
     src/fw/applib/ui/scroll_layer.c
     src/fw/applib/ui/menu_layer.c
+    src/fw/applib/ui/menu_text_scroll.c
     src/fw/applib/ui/shadows.c
     src/fw/applib/ui/animation_interpolate.c
     src/fw/applib/ui/animation_timing.c
@@ -238,6 +239,7 @@ pbl_clar_test(test_action_menu_layer
     src/fw/applib/ui/layer.c
     src/fw/applib/ui/scroll_layer.c
     src/fw/applib/ui/menu_layer.c
+    src/fw/applib/ui/menu_text_scroll.c
     src/fw/applib/ui/shadows.c
     src/fw/applib/ui/animation_interpolate.c
     src/fw/applib/ui/animation_timing.c
@@ -252,6 +254,12 @@ pbl_clar_test(test_action_menu_layer
     tests/fakes/fake_rtc.c
     tests/stubs/stubs_animation.c
   DEFINES CONFIG_TOUCH
+)
+
+pbl_clar_test(test_menu_text_scroll
+  SOURCES
+    src/fw/applib/ui/menu_text_scroll.c
+    tests/fakes/fake_rtc.c
 )
 
 pbl_clar_test(test_menu_layer_system_cells
@@ -293,6 +301,7 @@ pbl_clar_test(test_menu_layer_system_cells
     src/fw/applib/ui/kino/kino_reel_pdcs.c
     src/fw/applib/ui/layer.c
     src/fw/applib/ui/menu_layer_system_cells.c
+    src/fw/applib/ui/menu_text_scroll.c
     src/fw/board/displays/display_getafix.c
     src/fw/drivers/flash/flash_crc.c
     src/fw/flash_region/filesystem_regions.c
@@ -398,6 +407,7 @@ pbl_clar_test(test_action_menu_window
     src/fw/applib/ui/crumbs_layer.c
     src/fw/applib/ui/window.c
     src/fw/applib/ui/menu_layer.c
+    src/fw/applib/ui/menu_text_scroll.c
     src/fw/applib/ui/scroll_layer.c
     src/fw/applib/ui/inverter_layer.c
     src/fw/applib/ui/content_indicator.c
@@ -448,6 +458,7 @@ pbl_clar_test(test_notification_window
     src/fw/applib/ui/kino/kino_reel_pdcs.c
     src/fw/applib/ui/layer.c
     src/fw/applib/ui/menu_layer_system_cells.c
+    src/fw/applib/ui/menu_text_scroll.c
     src/fw/board/displays/display_getafix.c
     src/fw/drivers/flash/flash_crc.c
     src/fw/flash_region/filesystem_regions.c
@@ -581,6 +592,7 @@ pbl_clar_test(test_simple_dialog
     src/fw/applib/ui/text_layer_flow.c
     src/fw/applib/ui/window.c
     src/fw/applib/ui/menu_layer.c
+    src/fw/applib/ui/menu_text_scroll.c
     src/fw/applib/ui/scroll_layer.c
     src/fw/applib/ui/shadows.c
     src/fw/applib/ui/inverter_layer.c
@@ -630,6 +642,7 @@ pbl_clar_test(test_emoji_fonts
     src/fw/applib/ui/kino/kino_reel_pdcs.c
     src/fw/applib/ui/layer.c
     src/fw/applib/ui/menu_layer_system_cells.c
+    src/fw/applib/ui/menu_text_scroll.c
     src/fw/board/displays/display_getafix.c
     src/fw/drivers/flash/flash_crc.c
     src/fw/flash_region/filesystem_regions.c
@@ -738,6 +751,7 @@ pbl_clar_test(test_expandable_dialog
     src/fw/applib/ui/kino/kino_reel/transform.c
     src/fw/applib/ui/kino/kino_reel_custom.c
     src/fw/applib/ui/menu_layer.c
+    src/fw/applib/ui/menu_text_scroll.c
     src/fw/applib/ui/scroll_layer.c
     src/fw/applib/ui/shadows.c
     src/fw/applib/ui/text_layer.c
@@ -797,6 +811,7 @@ pbl_clar_test(test_selection_windows
     src/fw/applib/ui/kino/kino_reel_pdcs.c
     src/fw/applib/ui/layer.c
     src/fw/applib/ui/menu_layer_system_cells.c
+    src/fw/applib/ui/menu_text_scroll.c
     src/fw/board/displays/display_getafix.c
     src/fw/drivers/flash/flash_crc.c
     src/fw/flash_region/filesystem_regions.c
@@ -893,6 +908,7 @@ pbl_clar_test(test_timeline_peek
     src/fw/applib/ui/kino/kino_reel_pdcs.c
     src/fw/applib/ui/layer.c
     src/fw/applib/ui/menu_layer_system_cells.c
+    src/fw/applib/ui/menu_text_scroll.c
     src/fw/board/displays/display_getafix.c
     src/fw/drivers/flash/flash_crc.c
     src/fw/flash_region/filesystem_regions.c
@@ -1021,6 +1037,7 @@ pbl_clar_test(test_option_menu_window
     src/fw/applib/ui/content_indicator.c
     src/fw/applib/ui/inverter_layer.c
     src/fw/applib/ui/menu_layer.c
+    src/fw/applib/ui/menu_text_scroll.c
     src/fw/applib/ui/option_menu_window.c
     src/fw/applib/ui/scroll_layer.c
     src/fw/applib/ui/shadows.c

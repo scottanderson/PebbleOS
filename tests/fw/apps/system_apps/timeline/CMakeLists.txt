@@ -81,6 +81,7 @@ pbl_clar_test(test_timeline_list_view
     src/fw/applib/ui/kino/kino_reel/unfold.c
     src/fw/applib/ui/kino/kino_reel_custom.c
     src/fw/applib/ui/menu_layer.c
+    src/fw/applib/ui/menu_text_scroll.c
     src/fw/applib/ui/scroll_layer.c
     src/fw/applib/ui/shadows.c
     src/fw/applib/ui/status_bar_layer.c
@@ -205,6 +206,7 @@ pbl_clar_test(test_timeline_no_events
     src/fw/applib/ui/kino/kino_reel/unfold.c
     src/fw/applib/ui/kino/kino_reel_custom.c
     src/fw/applib/ui/menu_layer.c
+    src/fw/applib/ui/menu_text_scroll.c
     src/fw/applib/ui/scroll_layer.c
     src/fw/applib/ui/shadows.c
     src/fw/applib/ui/status_bar_layer.c
