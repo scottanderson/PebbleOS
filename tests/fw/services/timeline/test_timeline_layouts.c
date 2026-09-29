@@ -140,6 +140,7 @@ void test_timeline_layouts__initialize(void) {
 
 void test_timeline_layouts__cleanup(void) {
   free(fb);
+  system_theme_set_content_size(PreferredContentSizeDefault);
 }
 
 // Helpers
@@ -248,6 +249,36 @@ void test_timeline_layouts__generic(void) {
   prv_construct_and_render_layout(&config, 2);
   cl_check(gbitmap_pbi_eq(&s_ctx.dest_bitmap, TEST_PBI_FILE_X(details2)));
 #endif
+}
+
+//! Image names come from the calling test, so this is a macro
+#define RENDER_GENERIC_FOR_SIZE(size)                                        \
+  do {                                                                       \
+    system_theme_set_content_size(size);                                     \
+    const TimelineLayoutTestConfig config = (TimelineLayoutTestConfig){      \
+      .layout_id = LayoutIdGeneric,                                          \
+      .title = "Delfina Pizza",                                              \
+      .subtitle = "Open Table Reservation",                                  \
+      .location_name = "145 Williams\nJohn Ave, Palo Alto",                  \
+      .body = "Body message",                                                \
+      .icon_timeline_res_id = TIMELINE_RESOURCE_DINNER_RESERVATION,          \
+    };                                                                       \
+    prv_construct_and_render_layout(&config, 0);                             \
+    cl_check(gbitmap_pbi_eq(&s_ctx.dest_bitmap, TEST_PBI_FILE_X(peek)));     \
+    prv_construct_and_render_layout(&config, 1);                             \
+    cl_check(gbitmap_pbi_eq(&s_ctx.dest_bitmap, TEST_PBI_FILE_X(details1))); \
+  } while (0)
+
+void test_timeline_layouts__generic_small(void) {
+  RENDER_GENERIC_FOR_SIZE(PreferredContentSizeSmall);
+}
+
+void test_timeline_layouts__generic_medium(void) {
+  RENDER_GENERIC_FOR_SIZE(PreferredContentSizeMedium);
+}
+
+void test_timeline_layouts__generic_extra_large(void) {
+  RENDER_GENERIC_FOR_SIZE(PreferredContentSizeExtraLarge);
 }
 
 void test_timeline_layouts__weather(void) {

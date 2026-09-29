@@ -107,8 +107,8 @@ static const SystemThemeTextStyle s_text_styles[NumPreferredContentSizes] = {
       [TextStyleFont_MenuCellSubtitle] = FONT_KEY_GOTHIC_28,
 #endif
 #if !defined(CONFIG_RECOVERY_FW)
-      //! @note the AM/PM glyphs only exist up to this size, so it matches Large
-      [TextStyleFont_TimeHeaderNumbers] = FONT_KEY_LECO_26_BOLD_NUMBERS_AM_PM,
+      //! Only digits and separators; AM/PM is drawn with TimeHeaderWords
+      [TextStyleFont_TimeHeaderNumbers] = FONT_KEY_LECO_32_BOLD_NUMBERS,
 #endif
       [TextStyleFont_TimeHeaderWords] = FONT_KEY_GOTHIC_28_BOLD,
 #if !defined(CONFIG_RECOVERY_FW)
