@@ -9,16 +9,22 @@
 
 #include "applib/fonts/fonts.h"
 
+#include <string.h>
+
 FontInfo *s_test_fallback_font;
 
 // The only named keys the code under test asks for are the system emoji fonts, requested through
 // fonts_get_system_emoji_font_for_size(); a test installs one by pointing s_test_emoji_font at its
-// own FontInfo.
+// own FontInfo and s_test_emoji_font_key at the key it answers to.
 FontInfo *s_test_emoji_font;
+const char *s_test_emoji_font_key;
 
 GFont sys_font_get_system_font(const char *key) {
   if (key == NULL) {
     return s_test_fallback_font;
+  }
+  if (!s_test_emoji_font_key || strcmp(key, s_test_emoji_font_key) != 0) {
+    return NULL;
   }
   return s_test_emoji_font;
 }
