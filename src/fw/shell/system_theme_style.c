@@ -14,8 +14,11 @@
 //! Space between a launcher glance and the display edge
 #if PBL_DISPLAY_HEIGHT >= 200
 #define LAUNCHER_GLANCE_INSET 10
+//! Launcher text on rect displays needs only a few pixels from the right edge
+#define LAUNCHER_GLANCE_RIGHT_INSET PBL_IF_RECT_ELSE(4, LAUNCHER_GLANCE_INSET)
 #else
-#define LAUNCHER_GLANCE_INSET PBL_IF_RECT_ELSE(6, 23)
+#define LAUNCHER_GLANCE_INSET       PBL_IF_RECT_ELSE(6, 23)
+#define LAUNCHER_GLANCE_RIGHT_INSET LAUNCHER_GLANCE_INSET
 #endif
 #endif
 
@@ -71,7 +74,7 @@ static const SystemThemeStyle s_styles[NumPreferredContentSizes] = {
               .title_font_key = FONT_KEY_GOTHIC_18_BOLD,
               .subtitle_font_key = FONT_KEY_GOTHIC_14,
               .glance_left_inset = LAUNCHER_GLANCE_INSET,
-              .glance_right_inset = LAUNCHER_GLANCE_INSET,
+              .glance_right_inset = LAUNCHER_GLANCE_RIGHT_INSET,
 #if PBL_RECT
               .cell_height = 42,
 #else
@@ -134,7 +137,7 @@ static const SystemThemeStyle s_styles[NumPreferredContentSizes] = {
               .title_font_key = PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_24_BOLD, FONT_KEY_GOTHIC_18_BOLD),
               .subtitle_font_key = PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_18, FONT_KEY_GOTHIC_14),
               .glance_left_inset = LAUNCHER_GLANCE_INSET,
-              .glance_right_inset = LAUNCHER_GLANCE_INSET,
+              .glance_right_inset = LAUNCHER_GLANCE_RIGHT_INSET,
               .title_margin_h = PBL_IF_RECT_ELSE(-3, 0),
 #if PBL_RECT
               .cell_height = 50,
@@ -202,7 +205,7 @@ static const SystemThemeStyle s_styles[NumPreferredContentSizes] = {
               .title_font_key = PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_28_BOLD, FONT_KEY_GOTHIC_24_BOLD),
               .subtitle_font_key = PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_24, FONT_KEY_GOTHIC_18),
               .glance_left_inset = LAUNCHER_GLANCE_INSET,
-              .glance_right_inset = LAUNCHER_GLANCE_INSET,
+              .glance_right_inset = LAUNCHER_GLANCE_RIGHT_INSET,
               .title_margin_h = PBL_IF_RECT_ELSE(-3, 0),
 #if PBL_RECT
               .cell_height = 60,
@@ -279,7 +282,7 @@ static const SystemThemeStyle s_styles[NumPreferredContentSizes] = {
           .title_font_key = PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_36_BOLD, FONT_KEY_GOTHIC_28_BOLD),
           .subtitle_font_key = PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_28, FONT_KEY_GOTHIC_24),
           .glance_left_inset = LAUNCHER_GLANCE_INSET,
-          .glance_right_inset = LAUNCHER_GLANCE_INSET,
+          .glance_right_inset = LAUNCHER_GLANCE_RIGHT_INSET,
           .title_margin_h = PBL_IF_RECT_ELSE(-3, 0),
 #if PBL_RECT
           .cell_height = 76,
