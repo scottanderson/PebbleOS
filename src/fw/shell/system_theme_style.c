@@ -45,10 +45,11 @@ static const SystemThemeStyle s_styles[NumPreferredContentSizes] = {
               [TextStyleFont_PinSubtitle] = FONT_KEY_GOTHIC_14,
               [TextStyleFont_ParagraphHeader] = FONT_KEY_GOTHIC_14,
 #if !defined(CONFIG_RECOVERY_FW)
-              [TextStyleFont_CardSubtitle] = FONT_KEY_GOTHIC_24_BOLD,
+              [TextStyleFont_CardSubtitle] =
+                  PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_28_BOLD, FONT_KEY_GOTHIC_24_BOLD),
               [TextStyleFont_CalendarRecurring] =
                   PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_14, FONT_KEY_GOTHIC_14_BOLD),
-              [TextStyleFont_PeekSubtitle] = FONT_KEY_GOTHIC_18,
+              [TextStyleFont_PeekSubtitle] = FONT_KEY_GOTHIC_24,
 #endif
             },
         .menu_cell =
@@ -109,10 +110,11 @@ static const SystemThemeStyle s_styles[NumPreferredContentSizes] = {
               [TextStyleFont_PinSubtitle] = FONT_KEY_GOTHIC_18,
               [TextStyleFont_ParagraphHeader] = FONT_KEY_GOTHIC_14,
 #if !defined(CONFIG_RECOVERY_FW)
-              [TextStyleFont_CardSubtitle] = FONT_KEY_GOTHIC_24_BOLD,
+              [TextStyleFont_CardSubtitle] =
+                  PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_28_BOLD, FONT_KEY_GOTHIC_24_BOLD),
               [TextStyleFont_CalendarRecurring] =
                   PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_14, FONT_KEY_GOTHIC_14_BOLD),
-              [TextStyleFont_PeekSubtitle] = FONT_KEY_GOTHIC_18,
+              [TextStyleFont_PeekSubtitle] = FONT_KEY_GOTHIC_24,
 #endif
             },
         .menu_cell =
@@ -174,9 +176,10 @@ static const SystemThemeStyle s_styles[NumPreferredContentSizes] = {
               [TextStyleFont_PinSubtitle] = FONT_KEY_GOTHIC_28,
               [TextStyleFont_ParagraphHeader] = FONT_KEY_GOTHIC_24_BOLD,
 #if !defined(CONFIG_RECOVERY_FW)
-              [TextStyleFont_CardSubtitle] = FONT_KEY_GOTHIC_24_BOLD,
-              [TextStyleFont_CalendarRecurring] = FONT_KEY_GOTHIC_18_BOLD,
-              [TextStyleFont_PeekSubtitle] = FONT_KEY_GOTHIC_18,
+              [TextStyleFont_CardSubtitle] =
+                  PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_28_BOLD, FONT_KEY_GOTHIC_24_BOLD),
+              [TextStyleFont_CalendarRecurring] = FONT_KEY_GOTHIC_24_BOLD,
+              [TextStyleFont_PeekSubtitle] = FONT_KEY_GOTHIC_24,
 #endif
             },
         .menu_cell =
@@ -255,9 +258,10 @@ static const SystemThemeStyle s_styles[NumPreferredContentSizes] = {
 #endif
           [TextStyleFont_ParagraphHeader] = FONT_KEY_GOTHIC_28_BOLD,
 #if !defined(CONFIG_RECOVERY_FW)
-          [TextStyleFont_CardSubtitle] = FONT_KEY_GOTHIC_24_BOLD,
-          [TextStyleFont_CalendarRecurring] = FONT_KEY_GOTHIC_18_BOLD,
-          [TextStyleFont_PeekSubtitle] = FONT_KEY_GOTHIC_18,
+          [TextStyleFont_CardSubtitle] =
+              PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_28_BOLD, FONT_KEY_GOTHIC_24_BOLD),
+          [TextStyleFont_CalendarRecurring] = FONT_KEY_GOTHIC_24_BOLD,
+          [TextStyleFont_PeekSubtitle] = FONT_KEY_GOTHIC_24,
 #endif
         },
     .menu_cell =
