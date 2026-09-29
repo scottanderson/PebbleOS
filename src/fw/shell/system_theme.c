@@ -67,35 +67,37 @@ static const SystemThemeTextStyle s_text_styles[NumPreferredContentSizes] = {
       {
         .fonts =
             {
-              [TextStyleFont_Header] = FONT_KEY_GOTHIC_24_BOLD,
+              [TextStyleFont_Header] = FONT_KEY_GOTHIC_28_BOLD,
 #if !defined(CONFIG_RECOVERY_FW)
               [TextStyleFont_Title] = FONT_KEY_GOTHIC_28_BOLD,
               [TextStyleFont_Body] = FONT_KEY_GOTHIC_28,
 #endif
               [TextStyleFont_Subtitle] = FONT_KEY_GOTHIC_28,
-              [TextStyleFont_Caption] = FONT_KEY_GOTHIC_18,
-              [TextStyleFont_Footer] = FONT_KEY_GOTHIC_18,
+              [TextStyleFont_Caption] = FONT_KEY_GOTHIC_24,
+              [TextStyleFont_Footer] = FONT_KEY_GOTHIC_24,
               [TextStyleFont_MenuCellTitle] = FONT_KEY_GOTHIC_28_BOLD,
               [TextStyleFont_MenuCellSubtitle] = FONT_KEY_GOTHIC_24,
 #if !defined(CONFIG_RECOVERY_FW)
               [TextStyleFont_TimeHeaderNumbers] = FONT_KEY_LECO_26_BOLD_NUMBERS_AM_PM,
 #endif
-              [TextStyleFont_TimeHeaderWords] = FONT_KEY_GOTHIC_18_BOLD,
-              [TextStyleFont_PinSubtitle] = FONT_KEY_GOTHIC_24,
-              [TextStyleFont_ParagraphHeader] = FONT_KEY_GOTHIC_18_BOLD,
+              [TextStyleFont_TimeHeaderWords] = FONT_KEY_GOTHIC_24_BOLD,
+              [TextStyleFont_PinSubtitle] = FONT_KEY_GOTHIC_28,
+              [TextStyleFont_ParagraphHeader] = FONT_KEY_GOTHIC_24_BOLD,
             },
       },
   [PreferredContentSizeExtraLarge] = {
     .fonts = {
-      [TextStyleFont_Header] = FONT_KEY_GOTHIC_28_BOLD,
 #if !defined(CONFIG_RECOVERY_FW)
+      [TextStyleFont_Header] = FONT_KEY_GOTHIC_36_BOLD,
       [TextStyleFont_Title] = FONT_KEY_GOTHIC_36_BOLD,
       [TextStyleFont_Body] = FONT_KEY_GOTHIC_36,
-#endif
-      //! @note this is the same as Large until ExtraLarge is designed
+      [TextStyleFont_Subtitle] = FONT_KEY_GOTHIC_36,
+#else
+      [TextStyleFont_Header] = FONT_KEY_GOTHIC_28_BOLD,
       [TextStyleFont_Subtitle] = FONT_KEY_GOTHIC_28,
-      [TextStyleFont_Caption] = FONT_KEY_GOTHIC_24,
-      [TextStyleFont_Footer] = FONT_KEY_GOTHIC_24,
+#endif
+      [TextStyleFont_Caption] = FONT_KEY_GOTHIC_28,
+      [TextStyleFont_Footer] = FONT_KEY_GOTHIC_28,
 #if !defined(CONFIG_RECOVERY_FW)
       [TextStyleFont_MenuCellTitle] =
           PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_36_BOLD, FONT_KEY_GOTHIC_28_BOLD),
@@ -105,14 +107,16 @@ static const SystemThemeTextStyle s_text_styles[NumPreferredContentSizes] = {
       [TextStyleFont_MenuCellSubtitle] = FONT_KEY_GOTHIC_28,
 #endif
 #if !defined(CONFIG_RECOVERY_FW)
-      //! @note this is the same as Large until ExtraLarge is designed
+      //! @note the AM/PM glyphs only exist up to this size, so it matches Large
       [TextStyleFont_TimeHeaderNumbers] = FONT_KEY_LECO_26_BOLD_NUMBERS_AM_PM,
 #endif
-      //! @note this is the same as Large until ExtraLarge is designed
-      [TextStyleFont_TimeHeaderWords] = FONT_KEY_GOTHIC_18_BOLD,
-      //! @note this is the same as Large until ExtraLarge is designed
-      [TextStyleFont_PinSubtitle] = FONT_KEY_GOTHIC_24,
-      [TextStyleFont_ParagraphHeader] = FONT_KEY_GOTHIC_18_BOLD,
+      [TextStyleFont_TimeHeaderWords] = FONT_KEY_GOTHIC_28_BOLD,
+#if !defined(CONFIG_RECOVERY_FW)
+      [TextStyleFont_PinSubtitle] = FONT_KEY_GOTHIC_36,
+#else
+      [TextStyleFont_PinSubtitle] = FONT_KEY_GOTHIC_28,
+#endif
+      [TextStyleFont_ParagraphHeader] = FONT_KEY_GOTHIC_28_BOLD,
     },
   },
 };
