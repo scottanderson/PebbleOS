@@ -41,6 +41,8 @@ typedef struct SystemThemeLauncherStyle {
   int16_t glance_right_inset;
 #if PBL_RECT
   int16_t cell_height;
+  //! Height of a cell whose app has no subtitle, or 0 for cell_height
+  int16_t title_only_cell_height;
 #else
   int16_t focused_cell_height;
   int16_t unfocused_cell_height;
