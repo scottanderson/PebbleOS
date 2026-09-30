@@ -24,7 +24,7 @@ static const SystemThemeStyle s_styles[NumPreferredContentSizes] = {
       {
         .fonts =
             {
-              [TextStyleFont_Header] = FONT_KEY_GOTHIC_18_BOLD,
+              [TextStyleFont_Header] = FONT_KEY_GOTHIC_14_BOLD,
 #if !defined(CONFIG_RECOVERY_FW)
               [TextStyleFont_Title] = FONT_KEY_GOTHIC_18_BOLD,
               [TextStyleFont_Body] = FONT_KEY_GOTHIC_18,
@@ -32,21 +32,14 @@ static const SystemThemeStyle s_styles[NumPreferredContentSizes] = {
               [TextStyleFont_Subtitle] = FONT_KEY_GOTHIC_18_BOLD,
               [TextStyleFont_Caption] = FONT_KEY_GOTHIC_14,
               [TextStyleFont_Footer] = FONT_KEY_GOTHIC_14,
-              //! @note this is the same as the Title key (as that's what it's cloned from) until
-              //! Small
-              //!       is designed
               [TextStyleFont_MenuCellTitle] = FONT_KEY_GOTHIC_18_BOLD,
-              //! @note this is the same as Medium until Small is designed
-              [TextStyleFont_MenuCellSubtitle] = FONT_KEY_GOTHIC_18,
+              [TextStyleFont_MenuCellSubtitle] = FONT_KEY_GOTHIC_14,
 #if !defined(CONFIG_RECOVERY_FW)
-              //! @note this is the same as Medium until Small is designed
+              //! @note these are already the smallest fonts that exist, so they match Medium
               [TextStyleFont_TimeHeaderNumbers] = FONT_KEY_LECO_20_BOLD_NUMBERS,
 #endif
-              //! @note this is the same as Medium until Small is designed
               [TextStyleFont_TimeHeaderWords] = FONT_KEY_GOTHIC_14_BOLD,
-              //! @note this is the same as Medium until Small is designed
-              [TextStyleFont_PinSubtitle] = FONT_KEY_GOTHIC_18,
-              //! @note this is the same as Medium until Small is designed
+              [TextStyleFont_PinSubtitle] = FONT_KEY_GOTHIC_14,
               [TextStyleFont_ParagraphHeader] = FONT_KEY_GOTHIC_14,
 #if !defined(CONFIG_RECOVERY_FW)
               [TextStyleFont_CardSubtitle] = FONT_KEY_GOTHIC_24_BOLD,
@@ -57,9 +50,9 @@ static const SystemThemeStyle s_styles[NumPreferredContentSizes] = {
             },
         .menu_cell =
             {
-              .basic_cell_height = PBL_IF_RECT_ELSE(42, 44),
+              .basic_cell_height = 40,
               .app_basic_cell_height = 44,
-              .small_cell_height = 34,
+              .small_cell_height = 30,
               .horizontal_inset = 5,
               .title_subtitle_left_margin = 30,
               .single_line_padding_h = 10,
@@ -167,7 +160,7 @@ static const SystemThemeStyle s_styles[NumPreferredContentSizes] = {
               [TextStyleFont_Subtitle] = FONT_KEY_GOTHIC_28,
               [TextStyleFont_Caption] = FONT_KEY_GOTHIC_18,
               [TextStyleFont_Footer] = FONT_KEY_GOTHIC_18,
-              [TextStyleFont_MenuCellTitle] = FONT_KEY_GOTHIC_24_BOLD,
+              [TextStyleFont_MenuCellTitle] = FONT_KEY_GOTHIC_28_BOLD,
               [TextStyleFont_MenuCellSubtitle] = FONT_KEY_GOTHIC_24,
 #if !defined(CONFIG_RECOVERY_FW)
               [TextStyleFont_TimeHeaderNumbers] = FONT_KEY_LECO_26_BOLD_NUMBERS_AM_PM,
@@ -183,7 +176,7 @@ static const SystemThemeStyle s_styles[NumPreferredContentSizes] = {
             },
         .menu_cell =
             {
-              .basic_cell_height = PBL_IF_RECT_ELSE(50, 61),
+              .basic_cell_height = 61,
               .app_basic_cell_height = 61,
               .small_cell_height = 42,
               .horizontal_inset = 10,
@@ -235,8 +228,14 @@ static const SystemThemeStyle s_styles[NumPreferredContentSizes] = {
           [TextStyleFont_Subtitle] = FONT_KEY_GOTHIC_28,
           [TextStyleFont_Caption] = FONT_KEY_GOTHIC_24,
           [TextStyleFont_Footer] = FONT_KEY_GOTHIC_24,
+#if !defined(CONFIG_RECOVERY_FW)
+          [TextStyleFont_MenuCellTitle] =
+              PBL_IF_RECT_ELSE(FONT_KEY_GOTHIC_36_BOLD, FONT_KEY_GOTHIC_28_BOLD),
+          [TextStyleFont_MenuCellSubtitle] = FONT_KEY_GOTHIC_28,
+#else
           [TextStyleFont_MenuCellTitle] = FONT_KEY_GOTHIC_28_BOLD,
           [TextStyleFont_MenuCellSubtitle] = FONT_KEY_GOTHIC_28,
+#endif
 #if !defined(CONFIG_RECOVERY_FW)
           //! @note this is the same as Large until ExtraLarge is designed
           [TextStyleFont_TimeHeaderNumbers] = FONT_KEY_LECO_26_BOLD_NUMBERS_AM_PM,
@@ -254,7 +253,7 @@ static const SystemThemeStyle s_styles[NumPreferredContentSizes] = {
         },
     .menu_cell =
         {
-          .basic_cell_height = PBL_IF_RECT_ELSE(64, 85),
+          .basic_cell_height = 78,
           .app_basic_cell_height = 85,
           .small_cell_height = 52,
           .horizontal_inset = 10,
@@ -290,7 +289,7 @@ static const SystemThemeStyle s_styles[NumPreferredContentSizes] = {
         },
 #endif
     .action_menu = {
-      .unfocused_item_size = PreferredContentSizeExtraLarge,
+      .unfocused_item_size = PreferredContentSizeLarge,
     },
   },
 };
