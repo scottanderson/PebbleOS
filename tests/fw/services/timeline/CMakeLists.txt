@@ -212,6 +212,7 @@ pbl_clar_test(test_timeline_layouts
     src/fw/services/timeline/weather_layout.c
     src/fw/services/weather/weather_types.c
     src/fw/shell/system_theme.c
+    src/fw/shell/system_theme_style.c
     tests/stubs/stubs_clock.c
     tests/stubs/stubs_timeline_layout.c
   PLATFORMS obelix gabbro

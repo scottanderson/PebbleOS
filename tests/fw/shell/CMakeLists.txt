@@ -4,4 +4,5 @@
 pbl_clar_test(test_system_theme
   SOURCES
     src/fw/shell/system_theme.c
+    src/fw/shell/system_theme_style.c
 )
