@@ -62,6 +62,7 @@ static const SystemThemeStyle s_styles[NumPreferredContentSizes] = {
               .small_cell_height = 34,
               .horizontal_inset = 5,
               .title_subtitle_left_margin = 30,
+              .single_line_padding_h = 10,
             },
         //! @note this is the same as Medium until Small is designed
         .option_menu =
@@ -125,6 +126,7 @@ static const SystemThemeStyle s_styles[NumPreferredContentSizes] = {
               .small_cell_height = 34,
               .horizontal_inset = 5,
               .title_subtitle_left_margin = 30,
+              .single_line_padding_h = 10,
             },
         .option_menu =
             {
@@ -186,6 +188,7 @@ static const SystemThemeStyle s_styles[NumPreferredContentSizes] = {
               .small_cell_height = 42,
               .horizontal_inset = 10,
               .title_subtitle_left_margin = 34,
+              .single_line_padding_h = 10,
             },
         .option_menu =
             {
@@ -255,6 +258,7 @@ static const SystemThemeStyle s_styles[NumPreferredContentSizes] = {
           .small_cell_height = 52,
           .horizontal_inset = 10,
           .title_subtitle_left_margin = 34,
+          .single_line_padding_h = 10,
         },
     .option_menu =
         {
