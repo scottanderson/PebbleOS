@@ -42,6 +42,7 @@ pbl_clar_test(test_workout_summary
     src/fw/applib/ui/kino/kino_reel_pdcs.c
     src/fw/applib/ui/layer.c
     src/fw/applib/ui/menu_layer_system_cells.c
+    src/fw/shell/system_theme_style.c
     src/fw/applib/vendor/tinflate/tinflate.c
     src/fw/applib/vendor/uPNG/upng.c
     src/fw/board/displays/display_getafix.c
@@ -148,6 +149,7 @@ pbl_clar_test(test_workout_active
     src/fw/applib/ui/kino/kino_reel_pdcs.c
     src/fw/applib/ui/layer.c
     src/fw/applib/ui/menu_layer_system_cells.c
+    src/fw/shell/system_theme_style.c
     src/fw/applib/vendor/tinflate/tinflate.c
     src/fw/applib/vendor/uPNG/upng.c
     src/fw/board/displays/display_getafix.c
@@ -252,6 +254,7 @@ pbl_clar_test(test_workout_dialog
     src/fw/applib/ui/kino/kino_reel_pdcs.c
     src/fw/applib/ui/layer.c
     src/fw/applib/ui/menu_layer_system_cells.c
+    src/fw/shell/system_theme_style.c
     src/fw/applib/vendor/tinflate/tinflate.c
     src/fw/applib/vendor/uPNG/upng.c
     src/fw/board/displays/display_getafix.c
@@ -355,6 +358,7 @@ pbl_clar_test(test_workout_selection
     src/fw/applib/ui/kino/kino_reel_pdcs.c
     src/fw/applib/ui/layer.c
     src/fw/applib/ui/menu_layer_system_cells.c
+    src/fw/shell/system_theme_style.c
     src/fw/applib/vendor/tinflate/tinflate.c
     src/fw/applib/vendor/uPNG/upng.c
     src/fw/board/displays/display_getafix.c
