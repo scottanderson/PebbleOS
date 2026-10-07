@@ -147,6 +147,14 @@ def grid_sizes(platform, cols):
     return SIZE_NAMES[last - cols + 1 : last + 1]
 
 
+def shown_sizes(platform):
+    """Columns worth showing: the default size and the sizes either side of it."""
+    if platform not in PLATFORMS:
+        return set(COLUMNS)
+    i = SIZE_NAMES.index(PLATFORMS[platform][1])
+    return {"Default", ALL_SIZES, *SIZE_NAMES[max(i - 1, 0) : i + 2]}
+
+
 def screens(img, platform, column):
     """Rows of {column: screen} in img, cutting a screen grid into its screens."""
     shape = grid_shape(img, platform)
@@ -356,12 +364,16 @@ def review(base, head, out_dir, rows_per_sheet=ROWS_PER_SHEET):
     sheets = []
     for platform in sorted(groups):
         counts = {"changed": 0, "new": 0, "removed": 0}
+        shown = shown_sizes(platform)
         rows = []
         for screen in sorted(groups[platform]):
-            before_rows, after_rows = [], []
+            before_rows, after_rows, files = [], [], []
             for name in sorted(old.keys() | new.keys()):
                 p, s, size = split_name(name)
                 if p != platform or s != screen or name in summary["skipped"]:
+                    continue
+                column = dict(SIZES)[size]
+                if column not in shown:
                     continue
                 before = load(old[name]) if name in old else None
                 after = load(new[name]) if name in new else None
@@ -379,9 +391,7 @@ def review(base, head, out_dir, rows_per_sheet=ROWS_PER_SHEET):
                         if after is None
                         else "changed"
                     )
-                    counts[kind] += 1
-                    summary["files"].append({"name": name, "change": kind})
-                column = dict(SIZES)[size]
+                    files.append({"name": name, "change": kind})
                 for img, out in ((before, before_rows), (after, after_rows)):
                     if img is None:
                         continue
@@ -390,11 +400,12 @@ def review(base, head, out_dir, rows_per_sheet=ROWS_PER_SHEET):
                             out.append({})
                         out[r].update(cells)
             num_rows = max(len(before_rows), len(after_rows))
+            shows_change = False
             for r in range(num_rows):
                 b = before_rows[r] if r < len(before_rows) else {}
                 a = after_rows[r] if r < len(after_rows) else {}
                 b, a = expand(b, a), expand(a, b)
-                cells = {c: (b.get(c), a.get(c)) for c in b.keys() | a.keys()}
+                cells = {c: (b.get(c), a.get(c)) for c in (b.keys() | a.keys()) & shown}
                 if any(
                     bi is None or ai is None or not same_pixels(bi, ai)
                     for bi, ai in cells.values()
@@ -403,6 +414,12 @@ def review(base, head, out_dir, rows_per_sheet=ROWS_PER_SHEET):
                     if num_rows > 1:
                         label += f"\nrow {r + 1} of {num_rows}"
                     rows.append((label, cells))
+                    shows_change = True
+            # Leave out files whose changes are all in hidden sizes
+            if shows_change:
+                for f in files:
+                    counts[f["change"]] += 1
+                summary["files"].extend(files)
         if not rows:
             continue
         summary["platforms"][platform] = counts
