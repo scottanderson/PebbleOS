@@ -1,0 +1,120 @@
+# SPDX-FileCopyrightText: 2026 Scott Anderson
+# SPDX-License-Identifier: Apache-2.0
+
+name: Test image review
+
+# Draws before/after sheets of the reference images a pull request changes and
+# posts them on the pull request. Runs the base branch's script on the pull
+# request's git objects only, so no code from the pull request runs here.
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+
+concurrency:
+  group: test-image-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  # Branch that holds the sheets the reviews link to
+  ASSETS_BRANCH: test-image-review-assets
+  # "comment" for a comment updated in place, "description" for a block in the
+  # pull request description
+  MODE: ${{ vars.TEST_IMAGE_REVIEW_MODE || 'comment' }}
+
+jobs:
+  draw:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    env:
+      BASE: ${{ github.event.pull_request.base.sha }}
+      HEAD: ${{ github.event.pull_request.head.sha }}
+      PR: ${{ github.event.pull_request.number }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          filter: blob:none
+          persist-credentials: false
+
+      - name: Fetch pull request head
+        run: git fetch -q --filter=blob:none origin "refs/pull/$PR/head"
+
+      - name: Install Pillow
+        run: pip install --quiet pillow
+
+      - name: Draw sheets
+        run: python3 tools/test_image_review.py "$BASE" "$HEAD" --out image-review
+
+      - name: Upload sheets
+        uses: actions/upload-artifact@v7
+        with:
+          name: image-review
+          path: image-review/
+
+  post:
+    needs: draw
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+      HEAD: ${{ github.event.pull_request.head.sha }}
+      PR: ${{ github.event.pull_request.number }}
+      REPO: ${{ github.repository }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          sparse-checkout: .github/scripts
+          persist-credentials: false
+
+      - name: Download sheets
+        uses: actions/download-artifact@v8
+        with:
+          name: image-review
+          path: image-review
+
+      - name: Publish sheets
+        id: publish
+        run: |
+          url="https://raw.githubusercontent.com/$REPO/$ASSETS_BRANCH/$PR/$HEAD"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          sheets=$(jq -r '.sheets[].file' image-review/summary.json)
+          [ -n "$sheets" ] || exit 0
+          for s in $sheets; do
+            [[ "$s" =~ ^[a-z0-9]+-[0-9]+\.png$ ]] || { echo "::error::Bad sheet name $s"; exit 1; }
+          done
+          git init -q assets
+          cd assets
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add origin "https://x-access-token:$GITHUB_TOKEN@github.com/$REPO.git"
+          for attempt in 1 2 3 4 5; do
+            if git fetch -q --depth 1 origin "$ASSETS_BRANCH" 2>/dev/null; then
+              git checkout -q -B "$ASSETS_BRANCH" FETCH_HEAD
+              git reset -q --hard FETCH_HEAD
+            else
+              git symbolic-ref HEAD "refs/heads/$ASSETS_BRANCH"
+            fi
+            # Only the latest sheets of each pull request are kept
+            git rm -rq --ignore-unmatch "$PR"
+            mkdir -p "$PR/$HEAD"
+            for s in $sheets; do cp "../image-review/$s" "$PR/$HEAD/"; done
+            git add "$PR"
+            git commit -qm "Sheets for #$PR at $HEAD"
+            git push -q origin "$ASSETS_BRANCH" && exit 0
+            sleep $((RANDOM % 10 + attempt))
+          done
+          exit 1
+
+      - name: Post review
+        env:
+          URL: ${{ steps.publish.outputs.url }}
+        run: |
+          sed "s|{base_url}|$URL|g" image-review/comment.md > review.md
+          python3 .github/scripts/test-image-review-post.py review.md \
+            image-review/summary.json --repo "$REPO" --pr "$PR" --mode "$MODE"
