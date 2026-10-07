@@ -38,17 +38,33 @@ SIZES = [
     ("_large", "Large"),
     ("_extra_large", "Extra Large"),
 ]
+SIZE_NAMES = ["Small", "Medium", "Large", "Extra Large"]
+ALL_SIZES = "All sizes"
+# Order of the columns on a sheet
+COLUMNS = ["Default", ALL_SIZES, *SIZE_NAMES]
 SIZE_RE = re.compile(r"^(.*?)(_extra_large|_large|_medium|_small)?$")
 PLATFORM_RE = re.compile(r"^([a-z0-9]+)(.*)$")
 SAFE_NAME_RE = re.compile(r"^[A-Za-z0-9_.~+-]+$")
 
+# Screen size and default content size of each platform, to cut the screen grids
+# of tests/fixtures/screen_grid.c back into screens
+PLATFORMS = {
+    "asterix": ((144, 168), "Medium"),
+    "obelix": ((200, 228), "Large"),
+    "gabbro": ((260, 260), "Large"),
+}
+GRID_PADDING = 5
+MAX_GRID_ROWS = 8
+
 ROWS_PER_SHEET = 30
 # Tallest sheet worth showing in a comment, unless one row is taller
 MAX_SHEET_H = 3000
-GAP = 8
-PAIR_GAP = 24
-LABEL_W = 180
-HEADER_H = 64
+GAP = 6
+# Space between the before and after blocks, with a line down its middle
+SPLIT = 20
+LABEL_W = 130
+HEADER_H = 60
+FONT_DIR = "/usr/share/fonts/truetype/dejavu"
 BEFORE_COLOR = "#c00000"
 AFTER_COLOR = "#007000"
 
@@ -101,15 +117,109 @@ def loadable(blob):
         return False
 
 
+def grid_shape(img, platform):
+    """Columns and rows of a screen grid, or None if img isn't one."""
+    if platform not in PLATFORMS:
+        return None
+    (w, h), _ = PLATFORMS[platform]
+    for cols in range(1, len(SIZE_NAMES) + 1):
+        pad_x = GRID_PADDING if cols > 1 else 0
+        if img.width != pad_x + cols * (w + pad_x):
+            continue
+        for rows in range(1, MAX_GRID_ROWS + 1):
+            pad_y = GRID_PADDING if rows > 1 else 0
+            if img.height == pad_y + rows * (h + pad_y):
+                return cols, rows
+    return None
+
+
+def grid_sizes(platform, cols):
+    """Sizes of a grid's columns: the Text Size setting's range, or all of them.
+
+    The setting offers up to one size above the platform's default. A grid
+    with a single column has every size the same.
+    """
+    if cols == 1:
+        return [ALL_SIZES]
+    last = min(SIZE_NAMES.index(PLATFORMS[platform][1]) + 1, len(SIZE_NAMES) - 1)
+    if cols > last + 1:
+        last = len(SIZE_NAMES) - 1
+    return SIZE_NAMES[last - cols + 1 : last + 1]
+
+
+def screens(img, platform, column):
+    """Rows of {column: screen} in img, cutting a screen grid into its screens."""
+    shape = grid_shape(img, platform)
+    if shape in (None, (1, 1)):
+        return [{column: img}]
+    cols, rows = shape
+    (w, h), _ = PLATFORMS[platform]
+    pad_x = GRID_PADDING if cols > 1 else 0
+    pad_y = GRID_PADDING if rows > 1 else 0
+    names = grid_sizes(platform, cols)
+    out = []
+    for r in range(rows):
+        y = pad_y + r * (h + pad_y)
+        row = {
+            names[c]: img.crop(
+                (pad_x + c * (w + pad_x), y, pad_x + c * (w + pad_x) + w, y + h)
+            )
+            for c in range(cols)
+        }
+        out.append(resolve(row))
+    return out
+
+
+def is_labelled(img):
+    """True if a grid screen has the "Same as" box: a black border around white."""
+    w, h = img.size
+    x0, y0, x1, y1 = 10, h // 2 - 28, w - 11, h // 2 + 31
+    p = img.load()
+    border = [p[x, y0] for x in range(x0, x1)] + [p[x, y1] for x in range(x0, x1)]
+    return all(c == (0, 0, 0) for c in border) and p[x0 + 3, y0 + 3] == (255, 255, 255)
+
+
+def masked(img):
+    """The screen's pixels with the "Same as" box blanked out."""
+    w, h = img.size
+    img = img.copy()
+    ImageDraw.Draw(img).rectangle((0, h // 2 - 30, w, h // 2 + 32), fill=(0, 0, 0))
+    return img.tobytes()
+
+
+def resolve(row):
+    """Replace each "Same as" screen in a grid row with the screen it repeats."""
+    out = {}
+    for name, img in row.items():
+        if out and is_labelled(img):
+            m = masked(img)
+            img = next((e for e in out.values() if masked(e) == m), img)
+        out[name] = img
+    return out
+
+
+def expand(cells, other):
+    """Repeat a lone screen across the sizes of the other revision's row.
+
+    A grid whose sizes all match is a single screen, so compare it with each
+    size of a grid that has them.
+    """
+    if len(cells) != 1 or not other or not set(other) <= set(SIZE_NAMES):
+        return cells
+    (img,) = cells.values()
+    return dict.fromkeys(other, img)
+
+
 def same_pixels(a, b):
     return a.size == b.size and a.tobytes() == b.tobytes()
 
 
-def font(size):
+def font(size, bold=False):
+    name = "DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf"
     try:
+        return ImageFont.truetype(os.path.join(FONT_DIR, name), size)
+    except OSError:
         return ImageFont.load_default(size=size)
-    except TypeError:
-        return ImageFont.load_default()
 
 
 def row_label(screen):
@@ -117,7 +227,7 @@ def row_label(screen):
     stem = os.path.splitext(screen)[0]
     stem = stem.removeprefix("test_")
     suite, sep, case = stem.partition("__")
-    return wrap(suite, 20) + "\n" + wrap(case, 20) if sep else wrap(stem, 20)
+    return wrap(suite, 16) + "\n" + wrap(case, 16) if sep else wrap(stem, 16)
 
 
 def wrap(text, width):
@@ -132,58 +242,72 @@ def wrap(text, width):
 def placeholder(draw, box, text):
     x0, y0, x1, y1 = box
     draw.rectangle(box, fill="#eeeeee", outline="#bbbbbb")
-    f = font(16)
-    w = draw.textlength(text, font=f)
-    draw.text(((x0 + x1 - w) / 2, (y0 + y1) / 2 - 9), text, font=f, fill="#666666")
+    draw.text(
+        ((x0 + x1) / 2, (y0 + y1) / 2), text, fill="#555555", font=font(14), anchor="mm"
+    )
 
 
-def draw_sheet(rows, sizes, title):
-    """rows: [(label, {size: (before, after)})], images or None."""
-    cell_w = max(
-        img.width for _, cells in rows for pair in cells.values() for img in pair if img
-    )
-    cell_h = max(
-        img.height
-        for _, cells in rows
-        for pair in cells.values()
-        for img in pair
-        if img
-    )
-    cell_h = max(cell_h, 40)
-    pair_w = 2 * cell_w + GAP
-    width = LABEL_W + len(sizes) * (pair_w + PAIR_GAP)
+def draw_sheet(rows, sizes, platform, base, head):
+    """Draws the before screens of every size, then the after screens.
+
+    rows: [(label, {size: (before, after)})], images or None. An after screen
+    the same as its before screen says "No change".
+    """
+    imgs = [img for _, cells in rows for pair in cells.values() for img in pair if img]
+    cell_w = max(img.width for img in imgs)
+    cell_h = max(max(img.height for img in imgs), 40)
+    block_w = len(sizes) * (cell_w + GAP)
+    after_x = LABEL_W + block_w + SPLIT
+    width = after_x + block_w
     height = HEADER_H + len(rows) * (cell_h + GAP)
     out = Image.new("RGB", (width, height), "white")
     d = ImageDraw.Draw(out)
-    d.text((6, 6), title, font=font(18), fill="black")
-    for i, size in enumerate(sizes):
-        x = LABEL_W + i * (pair_w + PAIR_GAP)
-        d.text((x, 6), dict(SIZES)[size], font=font(18), fill="black")
-        d.text((x, 36), "Before", font=font(16), fill=BEFORE_COLOR)
-        d.text((x + cell_w + GAP, 36), "After", font=font(16), fill=AFTER_COLOR)
-        if i:
-            sx = x - PAIR_GAP // 2
-            d.line([(sx, 4), (sx, height)], fill="#888888", width=2)
+
+    default = PLATFORMS.get(platform, (None, None))[1]
+    for x, word, color, rev in (
+        (LABEL_W, "BEFORE", BEFORE_COLOR, base),
+        (after_x, "AFTER", AFTER_COLOR, head),
+    ):
+        d.text((x, 4), word, fill=color, font=font(15, bold=True))
+        d.text(
+            (x + d.textlength(word, font=font(15, bold=True)) + 6, 6),
+            rev[:9],
+            fill="#555555",
+            font=font(11),
+        )
+        for i, size in enumerate(sizes):
+            text = size + ("\n(default)" if size == default else "")
+            d.multiline_text(
+                (x + i * (cell_w + GAP), 24), text, fill="black", font=font(11)
+            )
+    line_x = LABEL_W + block_w + SPLIT // 2 - 2
+    d.line((line_x, 0, line_x, height), fill="#999999", width=2)
+
     for r, (label, cells) in enumerate(rows):
         y = HEADER_H + r * (cell_h + GAP)
-        d.multiline_text((6, y + 4), row_label(label), font=font(14), fill="black")
+        d.multiline_text(
+            (4, y + cell_h / 2),
+            label,
+            fill="black",
+            font=font(12, bold=True),
+            anchor="lm",
+        )
         for i, size in enumerate(sizes):
             if size not in cells:
                 continue
             before, after = cells[size]
-            x = LABEL_W + i * (pair_w + PAIR_GAP)
-            bx = (x, y, x + cell_w - 1, y + cell_h - 1)
-            ax = (x + cell_w + GAP, y, x + 2 * cell_w + GAP - 1, y + cell_h - 1)
+            bx = LABEL_W + i * (cell_w + GAP)
+            ax = after_x + i * (cell_w + GAP)
             if before:
-                out.paste(before, bx[:2])
+                out.paste(before, (bx, y))
             else:
-                placeholder(d, bx, "New")
+                placeholder(d, (bx, y, bx + cell_w - 1, y + cell_h - 1), "New")
             if after is None:
-                placeholder(d, ax, "Removed")
+                placeholder(d, (ax, y, ax + cell_w - 1, y + cell_h - 1), "Removed")
             elif before and same_pixels(before, after):
-                placeholder(d, ax, "No change")
+                placeholder(d, (ax, y, ax + cell_w - 1, y + cell_h - 1), "No change")
             else:
-                out.paste(after, ax[:2])
+                out.paste(after, (ax, y))
     return out
 
 
@@ -199,7 +323,7 @@ def split_rows(rows, rows_per_sheet):
     """
     by_sizes = {}
     for row in rows:
-        by_sizes.setdefault(tuple(s for s, _ in SIZES if s in row[1]), []).append(row)
+        by_sizes.setdefault(tuple(c for c in COLUMNS if c in row[1]), []).append(row)
     chunks = []
     for group in by_sizes.values():
         chunk, height = [], 0
@@ -234,7 +358,7 @@ def review(base, head, out_dir, rows_per_sheet=ROWS_PER_SHEET):
         counts = {"changed": 0, "new": 0, "removed": 0}
         rows = []
         for screen in sorted(groups[platform]):
-            cells = {}
+            before_rows, after_rows = [], []
             for name in sorted(old.keys() | new.keys()):
                 p, s, size = split_name(name)
                 if p != platform or s != screen or name in summary["skipped"]:
@@ -257,12 +381,28 @@ def review(base, head, out_dir, rows_per_sheet=ROWS_PER_SHEET):
                     )
                     counts[kind] += 1
                     summary["files"].append({"name": name, "change": kind})
-                cells[size] = (before, after)
-            if any(
-                b is None or a is None or not same_pixels(b, a)
-                for b, a in cells.values()
-            ):
-                rows.append((screen, cells))
+                column = dict(SIZES)[size]
+                for img, out in ((before, before_rows), (after, after_rows)):
+                    if img is None:
+                        continue
+                    for r, cells in enumerate(screens(img, platform, column)):
+                        if r == len(out):
+                            out.append({})
+                        out[r].update(cells)
+            num_rows = max(len(before_rows), len(after_rows))
+            for r in range(num_rows):
+                b = before_rows[r] if r < len(before_rows) else {}
+                a = after_rows[r] if r < len(after_rows) else {}
+                b, a = expand(b, a), expand(a, b)
+                cells = {c: (b.get(c), a.get(c)) for c in b.keys() | a.keys()}
+                if any(
+                    bi is None or ai is None or not same_pixels(bi, ai)
+                    for bi, ai in cells.values()
+                ):
+                    label = row_label(screen)
+                    if num_rows > 1:
+                        label += f"\nrow {r + 1} of {num_rows}"
+                    rows.append((label, cells))
         if not rows:
             continue
         summary["platforms"][platform] = counts
@@ -271,8 +411,10 @@ def review(base, head, out_dir, rows_per_sheet=ROWS_PER_SHEET):
             part = f" ({k}/{len(chunks)})" if len(chunks) > 1 else ""
             sheet = f"{platform}-{k}.png"
             # Only the sizes this sheet's rows have
-            sizes = [s for s, _ in SIZES if any(s in cells for _, cells in chunk)]
-            draw_sheet(chunk, sizes, platform + part).save(os.path.join(out_dir, sheet))
+            sizes = [c for c in COLUMNS if any(c in cells for _, cells in chunk)]
+            draw_sheet(chunk, sizes, platform, base, head).save(
+                os.path.join(out_dir, sheet)
+            )
             sheets.append(
                 {"platform": platform, "title": platform + part, "file": sheet}
             )
