@@ -67,6 +67,9 @@ HEADER_H = 60
 FONT_DIR = "/usr/share/fonts/truetype/dejavu"
 BEFORE_COLOR = "#c00000"
 AFTER_COLOR = "#007000"
+# Checkerboard drawn behind transparent pixels
+CHECKER = 8
+CHECKER_COLORS = (255, 204)
 
 
 def git(*args, data=False):
@@ -99,7 +102,23 @@ def split_name(filename):
 def load(blob):
     img = Image.open(io.BytesIO(git("cat-file", "blob", blob, data=True)))
     img.seek(0)
-    return img.convert("RGB")
+    return img.convert("RGBA")
+
+
+def on_checkerboard(img):
+    """img over a white and gray checkerboard, so transparent pixels stand out."""
+    if img.getextrema()[3][0] == 255:
+        return img.convert("RGB")
+    w, h = img.size
+    cols, rows = -(-w // CHECKER), -(-h // CHECKER)
+    board = Image.new("L", (cols, rows))
+    board.putdata(
+        [CHECKER_COLORS[(x + y) % 2] for y in range(rows) for x in range(cols)]
+    )
+    board = board.resize((cols * CHECKER, rows * CHECKER), Image.NEAREST).crop(
+        (0, 0, w, h)
+    )
+    return Image.alpha_composite(board.convert("RGBA"), img).convert("RGB")
 
 
 def loadable(blob):
@@ -303,7 +322,7 @@ def draw_sheet(rows, sizes, platform, base, head):
                 text = "Same as\n" + same_before[size]
                 placeholder(d, (bx, y, bx + cell_w - 1, y + cell_h - 1), text)
             else:
-                out.paste(before, (bx, y))
+                out.paste(on_checkerboard(before), (bx, y))
             if after is None:
                 placeholder(d, (ax, y, ax + cell_w - 1, y + cell_h - 1), "Removed")
             elif before and same_pixels(before, after):
@@ -312,7 +331,7 @@ def draw_sheet(rows, sizes, platform, base, head):
                 text = "Same as\n" + same_after[size]
                 placeholder(d, (ax, y, ax + cell_w - 1, y + cell_h - 1), text)
             else:
-                out.paste(after, (ax, y))
+                out.paste(on_checkerboard(after), (ax, y))
     return out
 
 
