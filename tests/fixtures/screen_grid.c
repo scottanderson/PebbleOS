@@ -5,13 +5,9 @@
 
 #include "clar_asserts.h"
 
-#include "applib/fonts/fonts.h"
 #include "applib/graphics/graphics.h"
-#include "applib/graphics/text.h"
-#include "font_resource_keys.auto.h"
 #include "pbl/util/math.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -21,13 +17,6 @@
 
 //! Defined by fw/graphics/util.h, which the test includes
 bool gbitmap_pbi_eq(GBitmap *bmp, const char *filename);
-
-static const char *const s_screen_grid_size_names[NumPreferredContentSizes] = {
-  [PreferredContentSizeSmall] = "Small",
-  [PreferredContentSizeMedium] = "Medium",
-  [PreferredContentSizeLarge] = "Large",
-  [PreferredContentSizeExtraLarge] = "Extra Large",
-};
 
 void screen_grid_init(ScreenGrid *grid, unsigned int num_rows) {
   cl_assert(num_rows <= SCREEN_GRID_MAX_ROWS);
@@ -51,43 +40,19 @@ static uint8_t *prv_screen_grid_read(const GBitmap *screen) {
   return pixels;
 }
 
-//! Labels the screen in ctx with the size it repeats
-static void prv_screen_grid_draw_same_as(GContext *ctx, PreferredContentSize size) {
-  const GDrawState saved = graphics_context_get_drawing_state(ctx);
-  graphics_context_set_default_drawing_state(ctx, GContextInitializationMode_System);
-  const GRect label = GRect(10, DISP_ROWS / 2 - 28, DISP_COLS - 20, 60);
-  graphics_context_set_fill_color(ctx, GColorWhite);
-  graphics_fill_rect(ctx, &label);
-  graphics_context_set_stroke_color(ctx, GColorBlack);
-  graphics_draw_rect(ctx, &label);
-  char text[32];
-  snprintf(text, sizeof(text), "Same as\n%s", s_screen_grid_size_names[size]);
-  graphics_context_set_text_color(ctx, GColorBlack);
-  graphics_draw_text(ctx, text, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
-                     GRect(0, DISP_ROWS / 2 - 30, DISP_COLS, 60), GTextOverflowModeWordWrap,
-                     GTextAlignmentCenter, NULL);
-  graphics_context_set_drawing_state(ctx, saved);
-}
-
 void screen_grid_add(ScreenGrid *grid, GContext *ctx, PreferredContentSize size,
                      unsigned int row) {
   cl_assert(size >= grid->first_size && size <= grid->last_size && row < grid->num_rows &&
             !grid->rendered[row][size]);
   grid->rendered[row][size] = prv_screen_grid_read(&ctx->dest_bitmap);
-  for (PreferredContentSize earlier = grid->first_size; earlier < size; earlier++) {
-    if (!memcmp(grid->rendered[row][earlier], grid->rendered[row][size], DISP_COLS * DISP_ROWS)) {
-      prv_screen_grid_draw_same_as(ctx, earlier);
-      grid->shown[row][size] = prv_screen_grid_read(&ctx->dest_bitmap);
-      return;
-    }
-  }
 }
 
 //! True if every screen matches the first size's screen in its row
 static bool prv_screen_grid_is_first_size_only(const ScreenGrid *grid) {
   for (unsigned int row = 0; row < grid->num_rows; row++) {
     for (PreferredContentSize size = grid->first_size + 1; size <= grid->last_size; size++) {
-      if (!grid->shown[row][size]) {
+      if (memcmp(grid->rendered[row][grid->first_size], grid->rendered[row][size],
+                 DISP_COLS * DISP_ROWS)) {
         return false;
       }
     }
@@ -110,7 +75,7 @@ static GBitmap *prv_screen_grid_create_bitmap(const ScreenGrid *grid) {
   for (unsigned int row = 0; row < grid->num_rows; row++) {
     for (unsigned int column = 0; column < num_columns; column++) {
       const PreferredContentSize size = grid->first_size + column;
-      const uint8_t *pixels = grid->shown[row][size] ?: grid->rendered[row][size];
+      const uint8_t *pixels = grid->rendered[row][size];
       cl_assert(pixels);
       const int16_t x_offset = pad_x + column * (DISP_COLS + pad_x);
       uint8_t *dest = (uint8_t *)bitmap->addr + (pad_y + row * (DISP_ROWS + pad_y)) *
@@ -138,7 +103,6 @@ void screen_grid_check(ScreenGrid *grid, const char *pbi_file) {
   for (unsigned int row = 0; row < SCREEN_GRID_MAX_ROWS; row++) {
     for (PreferredContentSize size = 0; size < NumPreferredContentSizes; size++) {
       free(grid->rendered[row][size]);
-      free(grid->shown[row][size]);
     }
   }
 }
