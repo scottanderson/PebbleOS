@@ -184,6 +184,8 @@ def screens(img, platform, column):
     pad_x = GRID_PADDING if cols > 1 else 0
     pad_y = GRID_PADDING if rows > 1 else 0
     names = grid_sizes(platform, cols)
+    # The grid's padding color, which also fills a frame where nothing moved
+    background = img.getpixel((0, 0))
     out = []
     for r in range(rows):
         y = pad_y + r * (h + pad_y)
@@ -193,6 +195,8 @@ def screens(img, platform, column):
             )
             for c in range(cols)
         }
+        for cell in row.values():
+            cell.info["still"] = cell.getcolors(1) == [(w * h, background)]
         out.append(row)
     return out
 
@@ -318,6 +322,8 @@ def draw_sheet(rows, sizes, platform, base, head):
             ax = after_x + i * (cell_w + GAP)
             if before is None:
                 placeholder(d, (bx, y, bx + cell_w - 1, y + cell_h - 1), "New")
+            elif before.info.get("still"):
+                placeholder(d, (bx, y, bx + cell_w - 1, y + cell_h - 1), "No movement")
             elif size in same_before:
                 text = "Same as\n" + same_before[size]
                 placeholder(d, (bx, y, bx + cell_w - 1, y + cell_h - 1), text)
@@ -327,6 +333,8 @@ def draw_sheet(rows, sizes, platform, base, head):
                 placeholder(d, (ax, y, ax + cell_w - 1, y + cell_h - 1), "Removed")
             elif before and same_pixels(before, after):
                 placeholder(d, (ax, y, ax + cell_w - 1, y + cell_h - 1), "No change")
+            elif after.info.get("still"):
+                placeholder(d, (ax, y, ax + cell_w - 1, y + cell_h - 1), "No movement")
             elif size in same_after:
                 text = "Same as\n" + same_after[size]
                 placeholder(d, (ax, y, ax + cell_w - 1, y + cell_h - 1), text)
