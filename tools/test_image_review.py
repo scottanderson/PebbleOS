@@ -174,35 +174,7 @@ def screens(img, platform, column):
             )
             for c in range(cols)
         }
-        out.append(resolve(row))
-    return out
-
-
-def is_labelled(img):
-    """True if a grid screen has the "Same as" box: a black border around white."""
-    w, h = img.size
-    x0, y0, x1, y1 = 10, h // 2 - 28, w - 11, h // 2 + 31
-    p = img.load()
-    border = [p[x, y0] for x in range(x0, x1)] + [p[x, y1] for x in range(x0, x1)]
-    return all(c == (0, 0, 0) for c in border) and p[x0 + 3, y0 + 3] == (255, 255, 255)
-
-
-def masked(img):
-    """The screen's pixels with the "Same as" box blanked out."""
-    w, h = img.size
-    img = img.copy()
-    ImageDraw.Draw(img).rectangle((0, h // 2 - 30, w, h // 2 + 32), fill=(0, 0, 0))
-    return img.tobytes()
-
-
-def resolve(row):
-    """Replace each "Same as" screen in a grid row with the screen it repeats."""
-    out = {}
-    for name, img in row.items():
-        if out and is_labelled(img):
-            m = masked(img)
-            img = next((e for e in out.values() if masked(e) == m), img)
-        out[name] = img
+        out.append(row)
     return out
 
 
@@ -250,16 +222,34 @@ def wrap(text, width):
 def placeholder(draw, box, text):
     x0, y0, x1, y1 = box
     draw.rectangle(box, fill="#eeeeee", outline="#bbbbbb")
-    draw.text(
-        ((x0 + x1) / 2, (y0 + y1) / 2), text, fill="#555555", font=font(14), anchor="mm"
-    )
+    lines = text.split("\n")
+    for i, line in enumerate(lines):
+        y = (y0 + y1) / 2 + (i - (len(lines) - 1) / 2) * 18
+        draw.text(((x0 + x1) / 2, y), line, fill="#555555", font=font(14), anchor="mm")
+
+
+def repeats(cells, side):
+    """{size: earlier size} for each screen identical to an earlier size's."""
+    out = {}
+    seen = []
+    for size in SIZE_NAMES:
+        img = cells.get(size, (None, None))[side]
+        if img is None:
+            continue
+        earlier = next((s for s, e in seen if same_pixels(e, img)), None)
+        if earlier:
+            out[size] = earlier
+        else:
+            seen.append((size, img))
+    return out
 
 
 def draw_sheet(rows, sizes, platform, base, head):
     """Draws the before screens of every size, then the after screens.
 
     rows: [(label, {size: (before, after)})], images or None. An after screen
-    the same as its before screen says "No change".
+    the same as its before screen says "No change", and a screen the same as
+    an earlier size's on its side says which size it repeats.
     """
     imgs = [img for _, cells in rows for pair in cells.values() for img in pair if img]
     cell_w = max(img.width for img in imgs)
@@ -300,20 +290,27 @@ def draw_sheet(rows, sizes, platform, base, head):
             font=font(12, bold=True),
             anchor="lm",
         )
+        same_before, same_after = repeats(cells, 0), repeats(cells, 1)
         for i, size in enumerate(sizes):
             if size not in cells:
                 continue
             before, after = cells[size]
             bx = LABEL_W + i * (cell_w + GAP)
             ax = after_x + i * (cell_w + GAP)
-            if before:
-                out.paste(before, (bx, y))
-            else:
+            if before is None:
                 placeholder(d, (bx, y, bx + cell_w - 1, y + cell_h - 1), "New")
+            elif size in same_before:
+                text = "Same as\n" + same_before[size]
+                placeholder(d, (bx, y, bx + cell_w - 1, y + cell_h - 1), text)
+            else:
+                out.paste(before, (bx, y))
             if after is None:
                 placeholder(d, (ax, y, ax + cell_w - 1, y + cell_h - 1), "Removed")
             elif before and same_pixels(before, after):
                 placeholder(d, (ax, y, ax + cell_w - 1, y + cell_h - 1), "No change")
+            elif size in same_after:
+                text = "Same as\n" + same_after[size]
+                placeholder(d, (ax, y, ax + cell_w - 1, y + cell_h - 1), text)
             else:
                 out.paste(after, (ax, y))
     return out
