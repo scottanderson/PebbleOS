@@ -57,12 +57,15 @@ GRID_PADDING = 5
 MAX_GRID_ROWS = 8
 
 ROWS_PER_SHEET = 30
+# Rows at least this fraction of a sheet's widest row share its sheet
+SIMILAR_WIDTH = 0.8
 # Tallest sheet worth showing in a comment, unless one row is taller
 MAX_SHEET_H = 3000
 GAP = 6
 # Space between the before and after blocks, with a line down its middle
 SPLIT = 20
 LABEL_W = 130
+LABEL_LINE_H = 15
 HEADER_H = 60
 FONT_DIR = "/usr/share/fonts/truetype/dejavu"
 BEFORE_COLOR = "#c00000"
@@ -274,13 +277,11 @@ def draw_sheet(rows, sizes, platform, base, head):
     the same as its before screen says "No change", and a screen the same as
     an earlier size's on its side says which size it repeats.
     """
-    imgs = [img for _, cells in rows for pair in cells.values() for img in pair if img]
-    cell_w = max(img.width for img in imgs)
-    cell_h = max(max(img.height for img in imgs), 40)
+    cell_w = max(row_width(cells) for _, cells in rows)
     block_w = len(sizes) * (cell_w + GAP)
     after_x = LABEL_W + block_w + SPLIT
     width = after_x + block_w
-    height = HEADER_H + len(rows) * (cell_h + GAP)
+    height = HEADER_H + sum(row_height(row) for row in rows)
     out = Image.new("RGB", (width, height), "white")
     d = ImageDraw.Draw(out)
 
@@ -304,8 +305,9 @@ def draw_sheet(rows, sizes, platform, base, head):
     line_x = LABEL_W + block_w + SPLIT // 2 - 2
     d.line((line_x, 0, line_x, height), fill="#999999", width=2)
 
-    for r, (label, cells) in enumerate(rows):
-        y = HEADER_H + r * (cell_h + GAP)
+    y = HEADER_H
+    for label, cells in rows:
+        cell_h = row_height((label, cells)) - GAP
         d.multiline_text(
             (4, y + cell_h / 2),
             label,
@@ -340,27 +342,60 @@ def draw_sheet(rows, sizes, platform, base, head):
                 placeholder(d, (ax, y, ax + cell_w - 1, y + cell_h - 1), text)
             else:
                 out.paste(on_checkerboard(after), (ax, y))
+        y += cell_h + GAP
     return out
 
 
-def row_height(cells):
-    return max(img.height for pair in cells.values() for img in pair if img) + GAP
+def row_images(cells):
+    return [img for pair in cells.values() for img in pair if img]
+
+
+def row_width(cells):
+    return max(img.width for img in row_images(cells))
+
+
+def row_height(row):
+    """Height of a row on a sheet, tall enough for its label."""
+    label, cells = row
+    label_h = (label.count("\n") + 1) * LABEL_LINE_H
+    return max(max(img.height for img in row_images(cells)), label_h) + GAP
+
+
+def width_groups(rows):
+    """Split rows into groups of similar width, keeping their order."""
+    widths = sorted({row_width(cells) for _, cells in rows}, reverse=True)
+    # The widest width of each group; narrower widths join the first they're close to
+    tops = []
+    for w in widths:
+        if not tops or w < tops[-1] * SIMILAR_WIDTH:
+            tops.append(w)
+    groups = {}
+    for row in rows:
+        w = row_width(row[1])
+        top = next(t for t in reversed(tops) if t >= w)
+        groups.setdefault(top, []).append(row)
+    return [groups[t] for t in tops if t in groups]
 
 
 def split_rows(rows, rows_per_sheet):
     """Split rows into sheets that share their size columns and stay short.
 
-    Rows with different sizes go on different sheets, so a wide grid doesn't
-    widen every column of single screens.
+    Rows with different sizes or widths go on different sheets, so a wide grid
+    or image doesn't widen every column of single screens.
     """
     by_sizes = {}
     for row in rows:
         by_sizes.setdefault(tuple(c for c in COLUMNS if c in row[1]), []).append(row)
+    by_sizes = {
+        (sizes, i): group
+        for sizes, same_sizes in by_sizes.items()
+        for i, group in enumerate(width_groups(same_sizes))
+    }
     chunks = []
     for group in by_sizes.values():
         chunk, height = [], 0
         for row in group:
-            h = row_height(row[1])
+            h = row_height(row)
             if chunk and (len(chunk) == rows_per_sheet or height + h > MAX_SHEET_H):
                 chunks.append(chunk)
                 chunk, height = [], 0
