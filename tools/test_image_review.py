@@ -53,7 +53,8 @@ PLATFORMS = {
     "obelix": ((200, 228), "Large"),
     "gabbro": ((260, 260), "Large"),
 }
-GRID_PADDING = 5
+# Grid padding of tests/fixtures/screen_grid.c, then of test_notification_window.c
+GRID_PADDINGS = (5, 8)
 MAX_GRID_ROWS = 8
 
 ROWS_PER_SHEET = 30
@@ -140,18 +141,19 @@ def loadable(blob):
 
 
 def grid_shape(img, platform):
-    """Columns and rows of a screen grid, or None if img isn't one."""
+    """Columns, rows and padding of a screen grid, or None if img isn't one."""
     if platform not in PLATFORMS:
         return None
     (w, h), _ = PLATFORMS[platform]
-    for cols in range(1, len(SIZE_NAMES) + 1):
-        pad_x = GRID_PADDING if cols > 1 else 0
-        if img.width != pad_x + cols * (w + pad_x):
-            continue
-        for rows in range(1, MAX_GRID_ROWS + 1):
-            pad_y = GRID_PADDING if rows > 1 else 0
-            if img.height == pad_y + rows * (h + pad_y):
-                return cols, rows
+    for pad in GRID_PADDINGS:
+        for cols in range(1, len(SIZE_NAMES) + 1):
+            pad_x = pad if cols > 1 else 0
+            if img.width != pad_x + cols * (w + pad_x):
+                continue
+            for rows in range(1, MAX_GRID_ROWS + 1):
+                pad_y = pad if rows > 1 else 0
+                if img.height == pad_y + rows * (h + pad_y):
+                    return cols, rows, pad
     return None
 
 
@@ -180,12 +182,12 @@ def shown_sizes(platform):
 def screens(img, platform, column):
     """Rows of {column: screen} in img, cutting a screen grid into its screens."""
     shape = grid_shape(img, platform)
-    if shape in (None, (1, 1)):
+    if shape is None or shape[:2] == (1, 1):
         return [{column: img}]
-    cols, rows = shape
+    cols, rows, pad = shape
     (w, h), _ = PLATFORMS[platform]
-    pad_x = GRID_PADDING if cols > 1 else 0
-    pad_y = GRID_PADDING if rows > 1 else 0
+    pad_x = pad if cols > 1 else 0
+    pad_y = pad if rows > 1 else 0
     names = grid_sizes(platform, cols)
     # The grid's padding color, which also fills a frame where nothing moved
     background = img.getpixel((0, 0))
