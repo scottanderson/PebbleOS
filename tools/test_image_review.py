@@ -70,6 +70,8 @@ HEADER_H = 60
 FONT_DIR = "/usr/share/fonts/truetype/dejavu"
 BEFORE_COLOR = "#c00000"
 AFTER_COLOR = "#007000"
+# Frame around each screen on a sheet of new files
+NEW_FRAME = 3
 # Checkerboard drawn behind transparent pixels
 CHECKER = 8
 CHECKER_COLORS = (255, 204)
@@ -270,26 +272,37 @@ def repeats(cells, side):
     return out
 
 
+def all_new(rows):
+    """Whether every screen on the rows is new, with nothing before it."""
+    return all(before is None for _, cells in rows for before, _ in cells.values())
+
+
 def draw_sheet(rows, sizes, platform, base, head):
     """Draws the before screens of every size, then the after screens.
 
     rows: [(label, {size: (before, after)})], images or None. An after screen
     the same as its before screen says "No change", and a screen the same as
-    an earlier size's on its side says which size it repeats.
+    an earlier size's on its side says which size it repeats. A sheet of only
+    new screens leaves out the empty before block and frames each screen.
     """
-    cell_w = max(row_width(cells) for _, cells in rows)
+    new = all_new(rows)
+    frame = NEW_FRAME if new else 0
+    cell_w = max(row_width(cells) for _, cells in rows) + 2 * frame
     block_w = len(sizes) * (cell_w + GAP)
-    after_x = LABEL_W + block_w + SPLIT
+    after_x = LABEL_W if new else LABEL_W + block_w + SPLIT
     width = after_x + block_w
-    height = HEADER_H + sum(row_height(row) for row in rows)
+    height = HEADER_H + sum(row_height(row) + 2 * frame for row in rows)
     out = Image.new("RGB", (width, height), "white")
     d = ImageDraw.Draw(out)
 
     default = PLATFORMS.get(platform, (None, None))[1]
-    for x, word, color, rev in (
-        (LABEL_W, "BEFORE", BEFORE_COLOR, base),
-        (after_x, "AFTER", AFTER_COLOR, head),
-    ):
+    headers = [(after_x, "NEW FILES", AFTER_COLOR, head)]
+    if not new:
+        headers = [
+            (LABEL_W, "BEFORE", BEFORE_COLOR, base),
+            (after_x, "AFTER", AFTER_COLOR, head),
+        ]
+    for x, word, color, rev in headers:
         d.text((x, 4), word, fill=color, font=font(15, bold=True))
         d.text(
             (x + d.textlength(word, font=font(15, bold=True)) + 6, 6),
@@ -302,12 +315,13 @@ def draw_sheet(rows, sizes, platform, base, head):
             d.multiline_text(
                 (x + i * (cell_w + GAP), 24), text, fill="black", font=font(11)
             )
-    line_x = LABEL_W + block_w + SPLIT // 2 - 2
-    d.line((line_x, 0, line_x, height), fill="#999999", width=2)
+    if not new:
+        line_x = LABEL_W + block_w + SPLIT // 2 - 2
+        d.line((line_x, 0, line_x, height), fill="#999999", width=2)
 
     y = HEADER_H
     for label, cells in rows:
-        cell_h = row_height((label, cells)) - GAP
+        cell_h = row_height((label, cells)) - GAP + 2 * frame
         d.multiline_text(
             (4, y + cell_h / 2),
             label,
@@ -322,6 +336,15 @@ def draw_sheet(rows, sizes, platform, base, head):
             before, after = cells[size]
             bx = LABEL_W + i * (cell_w + GAP)
             ax = after_x + i * (cell_w + GAP)
+            if new:
+                if after is not None:
+                    w, h = after.size
+                    d.rectangle(
+                        (ax, y, ax + w + 2 * frame - 1, y + h + 2 * frame - 1),
+                        fill=AFTER_COLOR,
+                    )
+                    out.paste(on_checkerboard(after), (ax + frame, y + frame))
+                continue
             if before is None:
                 placeholder(d, (bx, y, bx + cell_w - 1, y + cell_h - 1), "New")
             elif before.info.get("still"):
@@ -491,9 +514,8 @@ def review(base, head, out_dir, rows_per_sheet=ROWS_PER_SHEET):
             draw_sheet(chunk, sizes, platform, base, head).save(
                 os.path.join(out_dir, sheet)
             )
-            sheets.append(
-                {"platform": platform, "title": platform + part, "file": sheet}
-            )
+            title = platform + part + (", new files" if all_new(chunk) else "")
+            sheets.append({"platform": platform, "title": title, "file": sheet})
 
     summary["sheets"] = sheets
     return summary
