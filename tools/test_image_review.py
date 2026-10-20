@@ -59,8 +59,6 @@ MAX_GRID_ROWS = 8
 ROWS_PER_SHEET = 30
 # Rows at least this fraction of a sheet's widest row share its sheet
 SIMILAR_WIDTH = 0.8
-# Tallest sheet worth showing in a comment, unless one row is taller
-MAX_SHEET_H = 3000
 GAP = 6
 # Space between the before and after blocks, with a line down its middle
 SPLIT = 20
@@ -401,7 +399,7 @@ def width_groups(rows):
 
 
 def split_rows(rows, rows_per_sheet):
-    """Split rows into sheets that share their size columns and stay short.
+    """Split rows into sheets that share their size columns.
 
     Rows with different sizes or widths go on different sheets, so a wide grid
     or image doesn't widen every column of single screens.
@@ -416,15 +414,8 @@ def split_rows(rows, rows_per_sheet):
     }
     chunks = []
     for group in by_sizes.values():
-        chunk, height = [], 0
-        for row in group:
-            h = row_height(row)
-            if chunk and (len(chunk) == rows_per_sheet or height + h > MAX_SHEET_H):
-                chunks.append(chunk)
-                chunk, height = [], 0
-            chunk.append(row)
-            height += h
-        chunks.append(chunk)
+        for i in range(0, len(group), rows_per_sheet):
+            chunks.append(group[i : i + rows_per_sheet])
     return chunks
 
 
