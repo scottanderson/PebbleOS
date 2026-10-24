@@ -247,20 +247,22 @@ def wrap(text, width):
     return "\n".join(lines)
 
 
-def placeholder(draw, box, text):
+def placeholder(draw, box, text, size=14):
     x0, y0, x1, y1 = box
     draw.rectangle(box, fill="#eeeeee", outline="#bbbbbb")
     lines = text.split("\n")
     for i, line in enumerate(lines):
-        y = (y0 + y1) / 2 + (i - (len(lines) - 1) / 2) * 18
-        draw.text(((x0 + x1) / 2, y), line, fill="#555555", font=font(14), anchor="mm")
+        y = (y0 + y1) / 2 + (i - (len(lines) - 1) / 2) * size * 9 / 7
+        draw.text(
+            ((x0 + x1) / 2, y), line, fill="#555555", font=font(size), anchor="mm"
+        )
 
 
-def repeats(cells, side):
+def repeats(cells, side, size_names=SIZE_NAMES):
     """{size: earlier size} for each screen identical to an earlier size's."""
     out = {}
     seen = []
-    for size in SIZE_NAMES:
+    for size in size_names:
         img = cells.get(size, (None, None))[side]
         if img is None:
             continue
@@ -277,21 +279,40 @@ def all_new(rows):
     return all(before is None for _, cells in rows for before, _ in cells.values())
 
 
-def draw_sheet(rows, sizes, platform, base, head):
+def draw_sheet(
+    rows,
+    sizes,
+    platform,
+    base,
+    head,
+    *,
+    titles=("BEFORE", "AFTER"),
+    size_names=SIZE_NAMES,
+    label_w=LABEL_W,
+    header_h=HEADER_H,
+    split=SPLIT,
+    placeholder_size=14,
+    divider=True,
+):
     """Draws the before screens of every size, then the after screens.
 
     rows: [(label, {size: (before, after)})], images or None. An after screen
     the same as its before screen says "No change", and a screen the same as
     an earlier size's on its side says which size it repeats. A sheet of only
     new screens leaves out the empty before block and frames each screen.
+    The keyword arguments let other tools draw their own comparisons.
     """
+
+    def blank(box, text):
+        placeholder(d, box, text, placeholder_size)
+
     new = all_new(rows)
     frame = NEW_FRAME if new else 0
     cell_w = max(row_width(cells) for _, cells in rows) + 2 * frame
     block_w = len(sizes) * (cell_w + GAP)
-    after_x = LABEL_W if new else LABEL_W + block_w + SPLIT
+    after_x = label_w if new else label_w + block_w + split
     width = after_x + block_w
-    height = HEADER_H + sum(row_height(row) + 2 * frame for row in rows)
+    height = header_h + sum(row_height(row) + 2 * frame for row in rows)
     out = Image.new("RGB", (width, height), "white")
     d = ImageDraw.Draw(out)
 
@@ -299,8 +320,8 @@ def draw_sheet(rows, sizes, platform, base, head):
     headers = [(after_x, "NEW FILES", AFTER_COLOR, head)]
     if not new:
         headers = [
-            (LABEL_W, "BEFORE", BEFORE_COLOR, base),
-            (after_x, "AFTER", AFTER_COLOR, head),
+            (label_w, titles[0], BEFORE_COLOR, base),
+            (after_x, titles[1], AFTER_COLOR, head),
         ]
     for x, word, color, rev in headers:
         d.text((x, 4), word, fill=color, font=font(15, bold=True))
@@ -315,11 +336,11 @@ def draw_sheet(rows, sizes, platform, base, head):
             d.multiline_text(
                 (x + i * (cell_w + GAP), 24), text, fill="black", font=font(11)
             )
-    if not new:
-        line_x = LABEL_W + block_w + SPLIT // 2 - 2
+    if divider and not new:
+        line_x = label_w + block_w + split // 2 - 2
         d.line((line_x, 0, line_x, height), fill="#999999", width=2)
 
-    y = HEADER_H
+    y = header_h
     for label, cells in rows:
         cell_h = row_height((label, cells)) - GAP + 2 * frame
         d.multiline_text(
@@ -329,12 +350,13 @@ def draw_sheet(rows, sizes, platform, base, head):
             font=font(12, bold=True),
             anchor="lm",
         )
-        same_before, same_after = repeats(cells, 0), repeats(cells, 1)
+        same_before = repeats(cells, 0, size_names)
+        same_after = repeats(cells, 1, size_names)
         for i, size in enumerate(sizes):
             if size not in cells:
                 continue
             before, after = cells[size]
-            bx = LABEL_W + i * (cell_w + GAP)
+            bx = label_w + i * (cell_w + GAP)
             ax = after_x + i * (cell_w + GAP)
             if new:
                 if after is not None:
@@ -346,23 +368,23 @@ def draw_sheet(rows, sizes, platform, base, head):
                     out.paste(on_checkerboard(after), (ax + frame, y + frame))
                 continue
             if before is None:
-                placeholder(d, (bx, y, bx + cell_w - 1, y + cell_h - 1), "New")
+                blank((bx, y, bx + cell_w - 1, y + cell_h - 1), "New")
             elif before.info.get("still"):
-                placeholder(d, (bx, y, bx + cell_w - 1, y + cell_h - 1), "No movement")
+                blank((bx, y, bx + cell_w - 1, y + cell_h - 1), "No movement")
             elif size in same_before:
                 text = "Same as\n" + same_before[size]
-                placeholder(d, (bx, y, bx + cell_w - 1, y + cell_h - 1), text)
+                blank((bx, y, bx + cell_w - 1, y + cell_h - 1), text)
             else:
                 out.paste(on_checkerboard(before), (bx, y))
             if after is None:
-                placeholder(d, (ax, y, ax + cell_w - 1, y + cell_h - 1), "Removed")
+                blank((ax, y, ax + cell_w - 1, y + cell_h - 1), "Removed")
             elif before and same_pixels(before, after):
-                placeholder(d, (ax, y, ax + cell_w - 1, y + cell_h - 1), "No change")
+                blank((ax, y, ax + cell_w - 1, y + cell_h - 1), "No change")
             elif after.info.get("still"):
-                placeholder(d, (ax, y, ax + cell_w - 1, y + cell_h - 1), "No movement")
+                blank((ax, y, ax + cell_w - 1, y + cell_h - 1), "No movement")
             elif size in same_after:
                 text = "Same as\n" + same_after[size]
-                placeholder(d, (ax, y, ax + cell_w - 1, y + cell_h - 1), text)
+                blank((ax, y, ax + cell_w - 1, y + cell_h - 1), text)
             else:
                 out.paste(on_checkerboard(after), (ax, y))
         y += cell_h + GAP
